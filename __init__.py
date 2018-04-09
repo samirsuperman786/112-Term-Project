@@ -1,6 +1,7 @@
-from listener import *
+from Listener import *
 from tkinter import *
-from Word import *
+from Graphics.Word import *
+from threading import Thread
 
 # Updated Animation Starter Code
 
@@ -12,10 +13,9 @@ def init(data):
     # load data.xyz as appropriate
     data.timerDelay= 10
     data.time = 0
-    data.currentWord=""
+    data.currentSentence=""
     data.words = []
-    data.radius = 100
-    initializeSpeech()
+    initializeListener()
 
 def mousePressed(event, data):
     # use event.x and event.y
@@ -26,9 +26,13 @@ def keyPressed(event, data):
     pass
 
 def timerFired(data):
+    data.time+=1
     if(q.empty()==False):
-    	data.currentWord= q.get()
-    	data.words.append(Word(data.width//2, data.height//2, data.radius, data.currentWord))
+        data.currentSentence= q.get()
+        words = data.currentSentence.split(" ")
+        for i in range(len(words)):
+            word = words[i]
+            data.words.append(Word(data.width//2, data.height//2 - (i *100), getSoundVolume(), word))
     for word in data.words:
     	word.move((0, 1))
     	
@@ -36,10 +40,6 @@ def redrawAll(canvas, data):
     #canvas.create_text(data.width//2, data.height//2, text = data.currentWord, fill = "red")
     for word in data.words:
     	word.draw(canvas, data)
-
-####################################
-# use the run function as-is
-####################################
 
 def run(width=300, height=300):
     def redrawAllWrapper(canvas, data):
@@ -83,7 +83,13 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(1000, 600)
+if __name__ == "__main__":
+    mainThread = Thread(target = run, args = (1000, 600))
+    mainThread.start()
+    soundThread = Thread(target = soundVolume)
+    soundThread.start()
+    soundThread.join()
+    mainThread.join()
 
 
 
