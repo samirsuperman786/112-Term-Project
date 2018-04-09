@@ -3,14 +3,10 @@ from tkinter import *
 from Graphics.Word import *
 from threading import Thread
 
-# Updated Animation Starter Code
-
-####################################
-# customize these functions
-####################################
-
+#####
+#MVC#
+#####
 def init(data):
-    # load data.xyz as appropriate
     data.timerDelay= 10
     data.time = 0
     data.currentSentence=""
@@ -18,17 +14,15 @@ def init(data):
     initializeListener()
 
 def mousePressed(event, data):
-    # use event.x and event.y
     pass
 
 def keyPressed(event, data):
-    # use event.char and event.keysym
     pass
 
 def timerFired(data):
     data.time+=1
-    if(q.empty()==False):
-        data.currentSentence= q.get()
+    if(phrases.empty()==False):
+        data.currentSentence= phrases.get()
         words = data.currentSentence.split(" ")
         for i in range(len(words)):
             word = words[i]
@@ -41,6 +35,9 @@ def redrawAll(canvas, data):
     for word in data.words:
     	word.draw(canvas, data)
 
+#####
+#run#
+#####
 def run(width=300, height=300):
     def redrawAllWrapper(canvas, data):
         canvas.delete(ALL)
@@ -83,13 +80,11 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
+#Creates different threads for the microphone
 if __name__ == "__main__":
     mainThread = Thread(target = run, args = (1000, 600))
     mainThread.start()
-    soundThread = Thread(target = soundVolume)
+    soundThread = Thread(target = initializeVolume)
     soundThread.start()
     soundThread.join()
     mainThread.join()
-
-
-
