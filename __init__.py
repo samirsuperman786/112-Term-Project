@@ -1,91 +1,110 @@
+from panda3d.core import *
+from direct.showbase.ShowBase import ShowBase
+import sys, math, os, random
+from direct.gui.OnscreenText import OnscreenText
+
+#for basic intervals
+from direct.interval.IntervalGlobal import *
+from direct.interval.LerpInterval import *
+
+#for task managers
+from direct.task.Task import Task
+import time
+
 from Listener.ListenerManager import *
 from Listener.VolumeReader import *
-from tkinter import *
-from Graphics.Word import *
+
 from threading import Thread
+from Graphics.Word import *
 
-#####
-#MVC#
-#####
-def init(data):
-    data.timerDelay= 10
-    data.time = 0
-    data.currentSentence=""
-    data.words = []
-    initializeListener()
+class Display(ShowBase):
+    def __init__(self):
 
-def mousePressed(event, data):
-    pass
+        ShowBase.__init__(self)
+        self.words = []
 
-def keyPressed(event, data):
-    pass
+        #load all the things
+        self.loadBackground() # load lights and the fancy background
+        self.loadModels()
+        #key movement
+        self.createKeyControls()
 
-def timerFired(data):
-    data.time+=1
-    if(phrases.empty()==False):
-        data.currentSentence= phrases.get()
-        words = data.currentSentence.split(" ")
-        for i in range(len(words)):
-            word = words[i]
-            data.words.append(Word(data.width//2, data.height//2 - (i *100), getSoundVolume(), word))
-    for word in data.words:
-    	word.move((0, 1))
-    	
-def redrawAll(canvas, data):
-    #canvas.create_text(data.width//2, data.height//2, text = data.currentWord, fill = "red")
-    for word in data.words:
-    	word.draw(canvas, data)
+        self.keyMap = {}
+        timer = 0.2
+        taskMgr.doMethodLater(timer, self.move, "move")
+        taskMgr.doMethodLater(1, self.getNewWord, "word")
 
-#####
-#run#
-#####
-def run(width=300, height=300):
-    def redrawAllWrapper(canvas, data):
-        canvas.delete(ALL)
-        canvas.create_rectangle(0, 0, data.width, data.height,
-                                fill='white', width=0)
-        redrawAll(canvas, data)
-        canvas.update()    
+    def loadBackground(self):
 
-    def mousePressedWrapper(event, canvas, data):
-        mousePressed(event, data)
-        redrawAllWrapper(canvas, data)
+        #add one light per face, so each face is nicely illuminated
+        plight1 = PointLight('plight')
+        plight1.setColor(VBase4(1, 1, 1, 1))
+        plight1NodePath = render.attachNewNode(plight1)
+        plight1NodePath.setPos(0, 0, 500)
+        render.setLight(plight1NodePath)
 
-    def keyPressedWrapper(event, canvas, data):
-        keyPressed(event, data)
-        redrawAllWrapper(canvas, data)
+        plight2 = PointLight('plight')
+        plight2.setColor(VBase4(1, 1, 1, 1))
+        plight2NodePath = render.attachNewNode(plight2)
+        plight2NodePath.setPos(0, 0, -500)
+        render.setLight(plight2NodePath)
 
-    def timerFiredWrapper(canvas, data):
-        timerFired(data)
-        redrawAllWrapper(canvas, data)
-        # pause, then call timerFired again
-        canvas.after(data.timerDelay, timerFiredWrapper, canvas, data)
-    # Set up data and call init
-    class Struct(object): pass
-    data = Struct()
-    data.width = width
-    data.height = height
-    data.timerDelay = 100 # milliseconds
-    root = Tk()
-    init(data)
-    # create the root and the canvas
-    canvas = Canvas(root, width=data.width, height=data.height)
-    canvas.pack()
-    # set up events
-    root.bind("<Button-1>", lambda event:
-                            mousePressedWrapper(event, canvas, data))
-    root.bind("<Key>", lambda event:
-                            keyPressedWrapper(event, canvas, data))
-    timerFiredWrapper(canvas, data)
-    # and launch the app
-    root.mainloop()  # blocks until window is closed
-    print("bye!")
+        plight3 = PointLight('plight')
+        plight3.setColor(VBase4(1, 1, 1, 1))
+        plight3NodePath = render.attachNewNode(plight3)
+        plight3NodePath.setPos(0, -500, 0)
+        render.setLight(plight3NodePath)
 
-#Creates different threads for the microphone
-if __name__ == "__main__":
-    mainThread = Thread(target = run, args = (1000, 600))
-    mainThread.start()
-    soundThread = Thread(target = initializeVolume)
-    soundThread.start()
-    soundThread.join()
-    mainThread.join()
+        plight4 = PointLight('plight')
+        plight4.setColor(VBase4(1, 1, 1, 1))
+        plight4NodePath = render.attachNewNode(plight4)
+        plight4NodePath.setPos(0, 500, 0)
+        render.setLight(plight4NodePath)
+
+        plight5 = PointLight('plight')
+        plight5.setColor(VBase4(1, 1, 1, 1))
+        plight5NodePath = render.attachNewNode(plight5)
+        plight5NodePath.setPos(500,0, 0)
+        render.setLight(plight5NodePath)
+
+        plight6 = PointLight('plight')
+        plight6.setColor(VBase4(1, 1, 1, 1))
+        plight6NodePath = render.attachNewNode(plight6)
+        plight6NodePath.setPos(-500,0, 0)
+        render.setLight(plight6NodePath)
+
+        # Load the environment model.
+        self.scene = self.loader.loadModel("models/environment")
+        # Reparent the model to render.
+        self.scene.reparentTo(self.render)
+        # Apply scale and position transforms on the model.
+        self.scene.setScale(0.25, 0.25, 0.25)
+        self.scene.setPos(-20, 50, 0)
+
+    def loadModels(self):
+        pass
+
+    def setKey(self, key, value):
+        self.keyMap[key] = value
+
+    def createKeyControls(self):
+        pass
+
+    def move(self, task):
+        for word in Word.words:
+            word.move()
+        return task.cont
+
+    def getNewWord(self, task):
+        (startX, startY, startZ) = (0, 20, 10)
+        if(phrases.empty()==False):
+            word = Word(render, startX, startY, startZ, phrases.get())
+        return task.again
+
+
+initializeListener()
+game = Display()
+wp = WindowProperties() 
+wp.setSize(1920, 1080)
+base.win.requestProperties(wp)
+base.run()
