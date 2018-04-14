@@ -3,9 +3,9 @@ import numpy as np
 import sounddevice as sd
 
 global soundLevel
-soundLevel = [100]
-soundCache = 100
-volumeMultiplier = 2
+soundLevel = 0
+volumeMultiplier = 1
+time = 0
 
 #starts the volume lisetener
 def initializeVolume():
@@ -17,12 +17,10 @@ def initializeVolume():
 #converts sound levels
 def convertSoundVolume(indata, frames, time, status):
     global soundLevel
-    volume_norm = np.linalg.norm(indata) * 10 * volumeMultiplier
-    soundLevel.append(int(volume_norm))
-    #stores the past soundCache # of volume
-    if(len(soundLevel)>soundCache):
-        soundLevel.pop(0)
+    volume_norm = np.linalg.norm(indata) * 10
+    soundLevel= int(volume_norm)
 
 #gets how loud the sound is
 def getSoundVolume():
-    return max(soundLevel)
+	print(soundLevel)
+	return soundLevel

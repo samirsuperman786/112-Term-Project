@@ -1,15 +1,27 @@
+from panda3d.core import *
+
 class Word(object):
-	def __init__(self, x, y, radius, text):
+	words = []
+	def __init__(self, render, x, y, z, label):
 		self.x = x
 		self.y = y
-		self.text = text
-		self.radius = radius
+		self.z = z
+		self.label = label 
+		self.sphere = loader.loadModel("Graphics/models/sphere.egg")
+		self.sphere.reparentTo(render)
+		self.sphere.setPos(self.x, self.y, self.z)
+		text = TextNode(label)
+		text.setText(label)
+		text.setAlign(TextNode.ACenter)
+		textNode = self.sphere.attachNewNode(text)
+		textNode.setPos(0,-2,0)
+		Word.words.append(self)
 
-	def draw(self, canvas, data):
-		canvas.create_oval(self.x-self.radius, self.y-self.radius, self.x + self.radius, self.y + self.radius, fill = "blue")
-		canvas.create_text(self.x, self.y, text = self.text, fill = "black", font = "Helvetica 30 bold")
+	def move(self):
+		(dx, dy, dz) = (0, 0, -.1)
+		(self.x, self.y, self.z) = (dx + self.x, dy + self.y, dz + self.z) 
 
-	def move(self, direction):
-		(deltaX, deltaY) = direction
-		self.x +=deltaX
-		self.y +=deltaY
+		self.sphere.setPos(self.x, self.y, self.z)
+		if(self.z<-5):
+			Word.words.remove(self)
+			self.sphere.removeNode()

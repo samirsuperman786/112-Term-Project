@@ -7,24 +7,27 @@ import time
 
 import speech_recognition as sr
 import queue
+#from Listener.VolumeReader import *
 
 phrases = queue.Queue()
+phrases.put("hi")
 
 #starts the listener
 def initializeListener():
     r = sr.Recognizer()
     m = sr.Microphone()
     with sr.Microphone() as source:
-        r.adjust_for_ambient_noise(source) 
-        r.listen_in_background(m, translate, 1)
+        r.adjust_for_ambient_noise(source, duration = 0.5) 
+        r.listen_in_background(m, translate, 2)
 
 #translates audio to text
 def translate(recognizer, audio):
     try:
-        word = recognizer.recognize_google(audio)
-        print(word)
+        sentence = recognizer.recognize_google(audio)
         #adds to our word queue
-        phrases.put(word)
+        for w in sentence.split(" "):
+            print(w)
+            phrases.put(w)
     except sr.UnknownValueError:
         print("...")
     except sr.RequestError as e:
