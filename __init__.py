@@ -17,12 +17,42 @@ from Listener.VolumeReader import *
 from threading import Thread
 from Graphics.Word import *
 
+import socket
+import threading
+from queue import Queue
+
+HOST = "localhost" # put your IP address here if playing on multiple computers
+PORT = 50011
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+server.connect((HOST,PORT))
+print("Connected to server!")
+
+#handles server messages
+def handleServerMsg(server, serverMsg):
+  server.setblocking(1)
+  msg = ""
+  command = ""
+  while True:
+    msg += server.recv(10).decode("UTF-8")
+    command = msg.split("\n")
+    while (len(command) > 1):
+      readyMsg = command[0]
+      msg = "\n".join(command[1:])
+      serverMsg.put(readyMsg)
+      command = msg.split("\n")
+
+#The main window 
 class Display(ShowBase):
+    #sets up the initial parameters
     def __init__(self):
 
         ShowBase.__init__(self)
         self.words = []
 
+        self.otherPlayers = dict()
+        self.myPID = None
         #load all the things
         self.loadBackground() # load lights and the fancy background
         self.loadModels()
@@ -30,12 +60,12 @@ class Display(ShowBase):
         self.createKeyControls()
 
         self.keyMap = {}
-        timer = 0.2
-        taskMgr.doMethodLater(timer, self.move, "move")
+        #timerFired
+        taskMgr.doMethodLater(.2, self.update, "update")
         taskMgr.doMethodLater(1, self.getNewWord, "word")
 
+    #loads the background
     def loadBackground(self):
-
         #add one light per face, so each face is nicely illuminated
         plight1 = PointLight('plight')
         plight1.setColor(VBase4(1, 1, 1, 1))
@@ -90,21 +120,54 @@ class Display(ShowBase):
     def createKeyControls(self):
         pass
 
-    def move(self, task):
-        for word in Word.words:
-            word.move()
+    #Updates the display and gets new words
+    def update(self, task):
+        while (serverMsg.qsize() > 0):
+            msg = serverMsg.get(False)
+            try:
+                print("received: ", msg, "\n")
+                msg = msg.split()
+                command = msg[0]
+                if(command== "myIDis"):
+                    self.myPID = msg[1]
+                    self.otherPlayers[self.myPID] =[]
+
+                elif(command == "newPlayer"):
+                    newPID = msg[1]
+                    self.otherPlayers[newPID] = []
+
+                elif(command == "newWord"):
+                    PID = msg[1]
+                    label = msg[2]
+                    x = int(msg[3])
+                    y = int(msg[4])
+                    z = int(msg[5])
+                    newWord = Word(PID, render, x, y, z, label)
+                    self.otherPlayers[PID].append(newWord)
+            except:
+                print(msg)
+                print("failed")
+            serverMsg.task_done()
+
+        for player in self.otherPlayers:
+            for word in self.otherPlayers[player]:
+                if(word.move()==False):
+                    self.otherPlayers[player].remove(word)
         return task.cont
 
     def getNewWord(self, task):
-        (startX, startY, startZ) = (0, 20, 10)
+        (startX, startY, startZ) = (-4, 20, 10)
         if(phrases.empty()==False):
-            word = Word(render, startX, startY, startZ, phrases.get())
+            label = phrases.get()
+            word = Word(self.myPID, render, startX, startY, startZ, label)
+            self.otherPlayers[self.myPID].append(word)
+            msg = "newWord %s %d %d %d\n" % (label, startX + 8, startY, startZ)
+            server.send(msg.encode())
         return task.again
 
-
-initializeListener()
-game = Display()
-wp = WindowProperties() 
-wp.setSize(1920, 1080)
-base.win.requestProperties(wp)
-base.run()
+if __name__ == "__main__":
+    initializeListener()
+    game = Display()
+    serverMsg = Queue(100)
+    threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
+    base.run()
