@@ -7,7 +7,7 @@ import time
 
 import speech_recognition as sr
 import queue
-#from Listener.VolumeReader import *
+from Listener.VolumeReader import *
 
 phrases = queue.Queue()
 phrases.put("hi")
