@@ -1,5 +1,6 @@
 from panda3d.core import *
 
+#Word object which tracks and moves its location
 class Word(object):
 	def __init__(self, color, render, x, y, z, label):
 		self.x = x

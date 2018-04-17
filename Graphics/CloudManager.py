@@ -2,6 +2,7 @@ from panda3d.core import *
 
 clouds = []
 
+#loads clouds and places them with spacing
 def loadClouds(render):
 	(x, y, z) = (-10, 20, 4)
 	numClouds = 4
@@ -11,11 +12,13 @@ def loadClouds(render):
 		position = ((spacing * i) + x, y, z)
 		clouds.append(Cloud(render, position))
 
+#moves all clouds every task interval
 def moveClouds(task):
 	for cloud in clouds:
 		cloud.move()
 	return task.again
 
+#Cloud object that tracks position
 class Cloud(object):
 	def __init__(self, render, position):
 		path = "Graphics/models/cloud.egg"
