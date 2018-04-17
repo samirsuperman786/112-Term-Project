@@ -1,13 +1,12 @@
+#Server code and panda3d code adapted from optional lectures
+
 from panda3d.core import *
 from direct.showbase.ShowBase import ShowBase
 import sys, math, os, random
 from direct.gui.OnscreenText import OnscreenText
-
-#for basic intervals
 from direct.interval.IntervalGlobal import *
 from direct.interval.LerpInterval import *
 
-#for task managers
 from direct.task.Task import Task
 import time
 
@@ -22,7 +21,7 @@ import socket
 import threading
 from queue import Queue
 
-HOST = "localhost" # put your IP address here if playing on multiple computers
+HOST = "localhost"
 PORT = 50011
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -48,10 +47,8 @@ def handleServerMsg(server, serverMsg):
 class Display(ShowBase):
     #sets up the initial parameters
     def __init__(self):
-
         ShowBase.__init__(self)
         self.words = []
-
         self.otherPlayers = dict()
         self.myPID = None
         #load all the things
@@ -60,7 +57,6 @@ class Display(ShowBase):
         loadClouds(render)
         #key movement
         self.createKeyControls()
-
         self.keyMap = {}
         #timerFired
         taskMgr.doMethodLater(.2, self.update, "update")
@@ -158,6 +154,7 @@ class Display(ShowBase):
                     self.otherPlayers[player].remove(word)
         return task.cont
 
+    #grabs words from listenermanager
     def getNewWord(self, task):
         (startX, startY, startZ) = (-4, 25, 10)
         if(phrases.empty()==False):

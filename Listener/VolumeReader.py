@@ -22,5 +22,4 @@ def convertSoundVolume(indata, frames, time, status):
 
 #gets how loud the sound is
 def getSoundVolume():
-	print(soundLevel)
 	return soundLevel
