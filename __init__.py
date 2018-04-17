@@ -16,6 +16,7 @@ from Listener.VolumeReader import *
 
 from threading import Thread
 from Graphics.Word import *
+from Graphics.CloudManager import *
 
 import socket
 import threading
@@ -56,6 +57,7 @@ class Display(ShowBase):
         #load all the things
         self.loadBackground() # load lights and the fancy background
         self.loadModels()
+        loadClouds(render)
         #key movement
         self.createKeyControls()
 
@@ -63,6 +65,7 @@ class Display(ShowBase):
         #timerFired
         taskMgr.doMethodLater(.2, self.update, "update")
         taskMgr.doMethodLater(1, self.getNewWord, "word")
+        taskMgr.doMethodLater(.01, moveClouds, "cloud")
 
     #loads the background
     def loadBackground(self):
@@ -156,7 +159,7 @@ class Display(ShowBase):
         return task.cont
 
     def getNewWord(self, task):
-        (startX, startY, startZ) = (-4, 20, 10)
+        (startX, startY, startZ) = (-4, 25, 10)
         if(phrases.empty()==False):
             label = phrases.get()
             word = Word(self.myPID, render, startX, startY, startZ, label)
