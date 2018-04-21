@@ -130,11 +130,12 @@ class Display(ShowBase):
                 if(command== "myIDis"):
                     self.myPID = msg[1]
                     self.otherPlayers[self.myPID] =[]
-
+                elif(command == "myMicIs"):
+                    micIndex = int(msg[1])
+                    initializeListener(micIndex)
                 elif(command == "newPlayer"):
                     newPID = msg[1]
                     self.otherPlayers[newPID] = []
-
                 elif(command == "newWord"):
                     PID = msg[1]
                     label = msg[2]
@@ -166,8 +167,9 @@ class Display(ShowBase):
         return task.again
 
 if __name__ == "__main__":
-    initializeListener()
+    #initializeListener()
     game = Display()
     serverMsg = Queue(100)
     threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
+    base.disableMouse()
     base.run()
