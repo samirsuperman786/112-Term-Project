@@ -124,7 +124,6 @@ class Display(ShowBase):
         return task.again
 
 if __name__ == "__main__":
-    #initializeListener()
     game = Display()
     serverMsg = Queue(100)
     threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
