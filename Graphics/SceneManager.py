@@ -38,9 +38,9 @@ def setupScene(displayInstance, render):
 	render.setLight(plight6NodePath)
 
 	# Load the environment model.
-	displayInstance.scene = displayInstance.loader.loadModel("models/environment")
+	displayInstance.scene = loader.loadModel("models/environment")
 	# Reparent the model to render.
-	displayInstance.scene.reparentTo(displayInstance.render)
+	displayInstance.scene.reparentTo(render)
 	# Apply scale and position transforms on the model.
 	displayInstance.scene.setScale(0.25, 0.25, 0.25)
 	displayInstance.scene.setPos(-20, 50, 0)

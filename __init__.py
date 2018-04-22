@@ -48,7 +48,7 @@ def handleServerMsg(server, serverMsg):
 class Display(ShowBase):
     #sets up the initial parameters
     def __init__(self):
-        ShowBase.__init__(self)
+        #ShowBase.__init__(self)
         self.words = []
         self.otherPlayers = dict()
         self.myPID = None
@@ -108,13 +108,14 @@ class Display(ShowBase):
 
         for player in self.otherPlayers:
             for word in self.otherPlayers[player]:
-                if(word.move()==False):
-                    self.otherPlayers[player].remove(word)
+                pass
+                # if(word.move()==False):
+                #     self.otherPlayers[player].remove(word)
         return task.cont
 
     #grabs words from listenermanager
     def getNewWord(self, task):
-        (startX, startY, startZ) = (-4, 25, 10)
+        (startX, startY, startZ) = (-4, 30, 10)
         if(phrases.empty()==False):
             label = phrases.get()
             word = Word(self.myPID, render, startX, startY, startZ, label)
@@ -127,5 +128,6 @@ if __name__ == "__main__":
     game = Display()
     serverMsg = Queue(100)
     threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
-    base.disableMouse()
+    #base.disableMouse()
+    base.enableParticles()
     base.run()
