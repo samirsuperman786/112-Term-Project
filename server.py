@@ -56,12 +56,14 @@ playerNum = 0
 serverChannel = Queue(100)
 threading.Thread(target = serverThread, args = (clientele, serverChannel)).start()
 
-names = ["green", "blue", "red"]
+names = ["green", "blue"]
+mics = ["1", "2"]
 
 while True:
   client, address = server.accept()
   # myID is the key to the client in the clientele dictionary
   myID = names[playerNum]
+  myMic = mics[playerNum]
   print(myID, playerNum)
   for cID in clientele:
     print (repr(cID), repr(playerNum))
@@ -69,7 +71,8 @@ while True:
     client.send(("newPlayer %s\n" % cID).encode())
   clientele[myID] = client
   client.send(("myIDis %s \n" % myID).encode())
-  print("connection recieved from %s" % myID)
+  client.send(("myMicIs %s \n" % myMic).encode())
+  print("connection recieved from %s" % myID + str(myMic))
   threading.Thread(target = handleClient, args = 
                         (client ,serverChannel, myID, clientele)).start()
   playerNum += 1

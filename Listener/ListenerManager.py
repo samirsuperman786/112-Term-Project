@@ -7,15 +7,15 @@ import time
 
 import speech_recognition as sr
 import queue
-from Listener.VolumeReader import *
+#from Listener.VolumeReader import *
 
 phrases = queue.Queue()
 phrases.put("hi")
 
 #starts the listener
-def initializeListener():
+def initializeListener(micIndex):
     r = sr.Recognizer()
-    m = sr.Microphone()
+    m = sr.Microphone(device_index=micIndex)
     with sr.Microphone() as source:
         r.adjust_for_ambient_noise(source, duration = 0.5) 
         r.listen_in_background(m, translate, 2)
