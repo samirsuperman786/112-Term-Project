@@ -17,6 +17,7 @@ from threading import Thread
 from Graphics.Word import *
 from Graphics.CloudManager import *
 from Graphics.SceneManager import *
+from Graphics.Menu import *
 
 import socket
 import threading
@@ -109,8 +110,8 @@ class Display(ShowBase):
         for player in self.otherPlayers:
             for word in self.otherPlayers[player]:
                 pass
-                # if(word.move()==False):
-                #     self.otherPlayers[player].remove(word)
+                if(word.move()==False):
+                    self.otherPlayers[player].remove(word)
         return task.cont
 
     #grabs words from listenermanager
@@ -125,18 +126,23 @@ class Display(ShowBase):
         return task.again
 
 def createGravity():
-    base.enableParticles()
     #add gravity
+    base.enableParticles()
     gravityFN=ForceNode('world-forces')
     gravityFNP=render.attachNewNode(gravityFN)
     gravityForce=LinearVectorForce(0,0,-3) #gravity acceleration
     gravityFN.addForce(gravityForce)
     base.physicsMgr.addLinearForce(gravityForce)
 
-if __name__ == "__main__":
-    game = Display()
-    serverMsg = Queue(100)
-    threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
-    base.disableMouse()
-    createGravity()
+def start():
+    layout()
     base.run()
+
+if __name__ == "__main__":
+    start()
+    # game = Display()
+    # serverMsg = Queue(100)
+    # threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
+    # base.disableMouse()
+    # createGravity()
+    # base.run()
