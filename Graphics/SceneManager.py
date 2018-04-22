@@ -43,4 +43,4 @@ def setupScene(displayInstance, render):
 	displayInstance.scene.reparentTo(render)
 	# Apply scale and position transforms on the model.
 	displayInstance.scene.setScale(0.25, 0.25, 0.25)
-	displayInstance.scene.setPos(-20, 50, 0)
+	displayInstance.scene.setPos(50, 50, -2)

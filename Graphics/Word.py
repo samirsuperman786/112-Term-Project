@@ -19,8 +19,10 @@ class Word(DirectObject.DirectObject):
 		self.sphere.setPos(self.x, self.y, self.z)
 		text = TextNode(label)
 		text.setText(label)
+
 		text.setAlign(TextNode.ACenter)
 		textNode = self.sphere.attachNewNode(text)
+		textNode.setScale(1.4)
 		textNode.setPos(0,-2,0)
 		####
 		node = NodePath(label)
@@ -29,15 +31,7 @@ class Word(DirectObject.DirectObject):
 		anp = node.attachNewNode(an)
 		base.physicsMgr.attachPhysicalNode(an)
 		self.sphere.reparentTo(anp)
-		an.getPhysicsObject().setMass(10)
-
-		gravityFN=ForceNode('world-forces')
-		gravityFNP=render.attachNewNode(gravityFN)
-		gravityForce=LinearVectorForce(2,2,-4.9) #gravity acceleration
-		gravityFN.addForce(gravityForce)
-		 
-		base.physicsMgr.addLinearForce(gravityForce)
-
+		an.getPhysicsObject().setMass(3)
 		
 	def move(self):
 		(dx, dy, dz) = (0, 0, -.1)

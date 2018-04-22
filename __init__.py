@@ -115,7 +115,7 @@ class Display(ShowBase):
 
     #grabs words from listenermanager
     def getNewWord(self, task):
-        (startX, startY, startZ) = (-4, 30, 10)
+        (startX, startY, startZ) = (-4, 35, 6)
         if(phrases.empty()==False):
             label = phrases.get()
             word = Word(self.myPID, render, startX, startY, startZ, label)
@@ -124,10 +124,19 @@ class Display(ShowBase):
             server.send(msg.encode())
         return task.again
 
+def createGravity():
+    base.enableParticles()
+    #add gravity
+    gravityFN=ForceNode('world-forces')
+    gravityFNP=render.attachNewNode(gravityFN)
+    gravityForce=LinearVectorForce(0,0,-3) #gravity acceleration
+    gravityFN.addForce(gravityForce)
+    base.physicsMgr.addLinearForce(gravityForce)
+
 if __name__ == "__main__":
     game = Display()
     serverMsg = Queue(100)
     threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
-    #base.disableMouse()
-    base.enableParticles()
+    base.disableMouse()
+    createGravity()
     base.run()
