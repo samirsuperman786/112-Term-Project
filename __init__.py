@@ -6,6 +6,7 @@ import sys, math, os, random
 from direct.gui.OnscreenText import OnscreenText
 from direct.interval.IntervalGlobal import *
 from direct.interval.LerpInterval import *
+from direct.gui.DirectGui import *
 
 from direct.task.Task import Task
 import time
@@ -17,7 +18,8 @@ from threading import Thread
 from Graphics.Word import *
 from Graphics.CloudManager import *
 from Graphics.SceneManager import *
-from Graphics.Menu import *
+#from Graphics.Menu import *
+from Database.DatabaseManager import *
 
 import socket
 import threading
@@ -137,12 +139,32 @@ def createGravity():
 def start():
     layout()
     base.run()
+ 
+def layout():
+    entry = DirectEntry(text = "", scale=.2, command=checkUserName,
+    initialText="", numLines = 2, focus=1,
+     frameSize = (0,0,0, 0))
+    entry.setPos(-1,0,.3)
+
+def dialFriend(playerName, friend):
+    game = Display()
+    threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
+    base.disableMouse()
+    createGravity()
+
+#callback function to login 
+def checkUserName(enteredText):
+    playerName = enteredText
+    if(isTracked(enteredText)):
+        friends = getFriends(playerName)
+        loadFriendsMenu(playerName, friends)
+    else:
+        newPlayer(playerName)
+        loadFriendsMenu(playerName, [])
+
+def loadFriendsMenu(playerName, friends):
+    dialFriend(playerName, "bob")
 
 if __name__ == "__main__":
+    serverMsg = Queue(100)
     start()
-    # game = Display()
-    # serverMsg = Queue(100)
-    # threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
-    # base.disableMouse()
-    # createGravity()
-    # base.run()
