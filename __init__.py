@@ -20,6 +20,7 @@ from Graphics.CloudManager import *
 from Graphics.SceneManager import *
 from Database.DatabaseManager import *
 from Utils.CustomString import *
+from Graphics.MenuBobble import *
 
 import socket
 import threading
@@ -65,7 +66,8 @@ class Display(ShowBase):
         taskMgr.doMethodLater(updateTimer, self.update, "update")
         
     def loadModels(self):
-        setupScene(self, render)# load lights and the fancy background
+        setupScene(render)# load lights and the fancy background
+        loadBackground(self)
         loadClouds(render)
         #timerFired
         newWordTimer = 1
@@ -140,6 +142,7 @@ def createGravity():
 
 def start():
     loginScreen()
+    setupScene(render)
     base.run()
  
 def loginScreen():
@@ -169,22 +172,25 @@ def menuScreen(playerName):
     updateMenu()
 
 def updateMenu():
+    global nodePaths
     print("updating menu!")
     clearScreen()
     text = TextNode("Online Players")
     toDisplay = "Welcome back " + myName + "!\n\n"\
      + "\nOnline players: \n"
     online = getOnlinePlayers()
+    space = 0
     for player in online:
         if(player == myName): continue
-        toDisplay += player + "\n"
+        #toDisplay += player + "\n"
+        nodePaths.append(PlayerGraphic(render, -10 + space, 40, -5, player).getBobble())
+        space += 5
     if(len(online)==0):
         toDisplay+= "No players online!"
     text.setText(toDisplay)
     textNodePath = aspect2d.attachNewNode(text)
     textNodePath.setScale(.15)
     textNodePath.setPos(-.9,0,.7)
-    global nodePaths
     nodePaths.append(textNodePath)
 
 def dialFriend(playerName, friend):
@@ -203,9 +209,8 @@ def clearScreen():
     nodePaths = []
 
 def userLogOff():
-    if(state!="login"):
-        setOnlineStatus(myName, False)
-    msg = "logoffEvent %s\n" %myName
+    setOnlineStatus(myName, False)
+    msg = "logoffEvent %s\n" % myName
     server.send(msg.encode())
 
 if __name__ == "__main__":

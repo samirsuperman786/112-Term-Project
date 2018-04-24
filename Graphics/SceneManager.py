@@ -1,5 +1,5 @@
 from panda3d.core import *
-def setupScene(displayInstance, render):
+def setupScene(render):
 	#add one light per face, so each face is nicely illuminated
 	plight1 = PointLight('plight')
 	plight1.setColor(VBase4(1, 1, 1, 1))
@@ -37,6 +37,7 @@ def setupScene(displayInstance, render):
 	plight6NodePath.setPos(-500,0, 0)
 	render.setLight(plight6NodePath)
 
+def loadBackground(displayInstance):
 	# Load the environment model.
 	displayInstance.scene = loader.loadModel("models/environment")
 	# Reparent the model to render.
