@@ -11,6 +11,10 @@ import queue
 
 phrases = queue.Queue()
 phrases.put("hi")
+phrases.put("hi")
+phrases.put("hi")
+phrases.put("hi")
+phrases.put("hi")
 
 #starts the listener
 def initializeListener(micIndex):

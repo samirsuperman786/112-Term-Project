@@ -13,8 +13,19 @@ def isTracked(name):
 #creates a player profile in the database
 def newPlayer(name):
 	profile = {"name" : name,
-		"friendsList" : []}
+		"friendsList" : [],
+		"isOnline" : True}
 	db.profiles.insert_one(profile).inserted_id
+
+def setOnlineStatus(name, state):
+	db.profiles.update_one({"name":name}, {"$set": {"isOnline": state}})
+
+def getOnlinePlayers():
+	online = []
+	for profile in db.profiles.find():
+		if(profile["isOnline"]):
+			online.append(profile["name"])
+	return online
 
 #retrieves a players friend list
 def getFriends(name):
@@ -35,3 +46,6 @@ def removeFriend(name, partner):
 	oldFriends = getFriends(name)
 	oldFriends.remove(partner)
 	db.profiles.update_one({"name":name}, {"$set": {"friendsList": oldFriends}})
+
+def clearProfiles():
+	db.profiles.remove()

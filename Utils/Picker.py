@@ -10,6 +10,7 @@ class Picker(DirectObject.DirectObject):
    def __init__(self): 
       #setup collision stuff 
 
+      self.myTraverser = CollisionTraverser()
       self.picker= CollisionTraverser() 
       self.queue=CollisionHandlerQueue() 
 
@@ -22,7 +23,7 @@ class Picker(DirectObject.DirectObject):
 
       self.pickerNode.addSolid(self.pickerRay) 
 
-      self.picker.addCollider(self.pickerNP, self.queue)
+      self.myTraverser.addCollider(self.pickerNP, self.queue)
 
       #this holds the object that has been picked 
       self.pickedObj=None 
@@ -37,7 +38,7 @@ class Picker(DirectObject.DirectObject):
    def getObjectHit(self, mpos): #mpos is the position of the mouse on the screen 
       self.pickedObj=None #be sure to reset this 
       self.pickerRay.setFromLens(base.camNode, mpos.getX(),mpos.getY()) 
-      self.picker.traverse(render) 
+      self.myTraverser.traverse(render) 
       if self.queue.getNumEntries() > 0: 
          self.queue.sortEntries() 
          self.pickedObj=self.queue.getEntry(0).getIntoNodePath() 
@@ -57,9 +58,9 @@ class Picker(DirectObject.DirectObject):
          return self.pickedObj 
 
    def printMe(self): 
-         self.getObjectHit(base.mouseWatcherNode.getMouse()) 
-         print(self.pickedObj)
+         ob = self.getObjectHit(base.mouseWatcherNode.getMouse()) 
+         print(ob)
          if(self.pickedObj!=None):
             (x,y,z) = self.pickedObj.getPos()
             print(x,y,z)
-            self.pickedObj.setPos(x,y, z + 4)
+            self.pickedObj.setPos(x,y, 3)

@@ -18,12 +18,17 @@ from threading import Thread
 from Graphics.Word import *
 from Graphics.CloudManager import *
 from Graphics.SceneManager import *
-#from Graphics.Menu import *
 from Database.DatabaseManager import *
+from Utils.CustomString import *
 
 import socket
 import threading
 from queue import Queue
+import copy
+
+nodePaths = []
+state = "login"
+myName = ""
 
 HOST = "localhost"
 PORT = 50011
@@ -55,23 +60,17 @@ class Display(ShowBase):
         self.words = []
         self.otherPlayers = dict()
         self.myPID = None
-        #load all the things
-        setupScene(self, render)# load lights and the fancy background
-        self.loadModels()
-        loadClouds(render)
-        #key movement
-        self.createKeyControls()
-        self.keyMap = {}
-        #timerFired
         updateTimer = .2
+        taskMgr.doMethodLater(updateTimer, self.update, "update")
+        
+    def loadModels(self):
+        setupScene(self, render)# load lights and the fancy background
+        loadClouds(render)
+        #timerFired
         newWordTimer = 1
         moveCloudTimer = .01
-        taskMgr.doMethodLater(updateTimer, self.update, "update")
         taskMgr.doMethodLater(newWordTimer, self.getNewWord, "word")
         taskMgr.doMethodLater(moveCloudTimer, moveClouds, "cloud")
-
-    def loadModels(self):
-        pass
 
     def setKey(self, key, value):
         self.keyMap[key] = value
@@ -91,11 +90,13 @@ class Display(ShowBase):
                     self.myPID = msg[1]
                     self.otherPlayers[self.myPID] =[]
                 elif(command == "myMicIs"):
-                    micIndex = int(msg[1])
-                    initializeListener(micIndex)
+                    self.micIndex = int(msg[1])
                 elif(command == "newPlayer"):
                     newPID = msg[1]
                     self.otherPlayers[newPID] = []
+                    updateMenu(myName)
+                elif(command == "loginEvent"):
+                    updateMenu(myName)
                 elif(command == "newWord"):
                     PID = msg[1]
                     label = msg[2]
@@ -137,34 +138,71 @@ def createGravity():
     base.physicsMgr.addLinearForce(gravityForce)
 
 def start():
-    layout()
+    loginScreen()
     base.run()
  
-def layout():
-    entry = DirectEntry(text = "", scale=.2, command=checkUserName,
+def loginScreen():
+    clearScreen()
+    text = TextNode("Username")
+    text.setText("Username")
+    textNodePath = aspect2d.attachNewNode(text)
+    textNodePath.setScale(.15)
+    textNodePath.setPos(-.9,0,0)
+    entry = DirectEntry(text = "", scale=.2, command=menuScreen,
     initialText="", numLines = 2, focus=1,
-     frameSize = (0,0,0, 0))
-    entry.setPos(-1,0,.3)
+     frameSize = (-.3,0,0,0))
+
+    nodePaths.append(textNodePath)
+    nodePaths.append(entry)
+
+def menuScreen(playerName):
+    state="menu"
+    msg = "loginEvent"
+    server.send(msg.encode())
+    global myName
+    myName= playerName
+    setOnlineStatus(playerName, True)
+    clearScreen()
+    if(isTracked(playerName)==False): newPlayer(playerName)
+    updateMenu(playerName)
+
+def updateMenu(playerName):
+    clearScreen()
+    text = TextNode("Online Players")
+    toDisplay = "Welcome back " + playerName + "!\n\n"\
+     + "\nOnline players: \n"
+    online = getOnlinePlayers()
+    for player in online:
+        if(player == playerName): continue
+        toDisplay += player + "\n"
+    if(len(online)==0):
+        toDisplay+= "No players online!"
+    text.setText(toDisplay)
+    textNodePath = aspect2d.attachNewNode(text)
+    textNodePath.setScale(.15)
+    textNodePath.setPos(-.9,0,.7)
+    nodePaths.append(textNodePath)
 
 def dialFriend(playerName, friend):
-    game = Display()
+    state = "inCall"
+    initializeListener(micIndex)
+    game.loadModels()
     threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
     base.disableMouse()
     createGravity()
 
-#callback function to login 
-def checkUserName(enteredText):
-    playerName = enteredText
-    if(isTracked(enteredText)):
-        friends = getFriends(playerName)
-        loadFriendsMenu(playerName, friends)
-    else:
-        newPlayer(playerName)
-        loadFriendsMenu(playerName, [])
+def clearScreen():
+    global nodePaths
+    tmp = copy.copy(nodePaths)
+    for path in tmp:
+        path.removeNode()
+        nodePaths.remove(path)
 
-def loadFriendsMenu(playerName, friends):
-    dialFriend(playerName, "bob")
+def userLogOff():
+    setOnlineStatus(myName, False)
 
 if __name__ == "__main__":
+    base.exitFunc = userLogOff
     serverMsg = Queue(100)
+    game = Display()
     start()
