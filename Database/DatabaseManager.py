@@ -50,4 +50,6 @@ def removeFriend(name, partner):
 def clearProfiles():
 	db.profiles.remove()
 
-#clearProfiles()
+def setOffline():
+	for profile in db.profiles.find():
+		db.profiles.update_one(profile, {"$set": {"isOnline": False}})

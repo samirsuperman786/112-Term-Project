@@ -7,7 +7,7 @@ from Graphics.Word import *
 
 
 class Picker(DirectObject.DirectObject): 
-   def __init__(self): 
+   def __init__(self, funcToCall=None): 
       #setup collision stuff 
 
       self.myTraverser = CollisionTraverser()
@@ -28,11 +28,11 @@ class Picker(DirectObject.DirectObject):
       #this holds the object that has been picked 
       self.pickedObj=None 
 
-      self.accept('mouse1', self.printMe) 
+      self.accept('mouse1', funcToCall) 
 
    #this function is meant to flag an object as being somthing we can pick 
-   def makePickable(self,newObj): 
-      newObj.setTag('pickable','true') 
+   def makePickable(self, newObj, val = "True"): 
+      newObj.setTag("pickable", val) 
 
    #this function finds the closest object to the camera that has been hit by our ray 
    def getObjectHit(self, mpos): #mpos is the position of the mouse on the screen 
@@ -47,7 +47,8 @@ class Picker(DirectObject.DirectObject):
          self.pickedObj=None 
 
          while parent != render: 
-            if parent.getTag('pickable')=='true': 
+            tag = parent.getTag("pickable")
+            if tag!="":
                self.pickedObj=parent 
                return parent 
             else: 
@@ -56,11 +57,3 @@ class Picker(DirectObject.DirectObject):
 
    def getPickedObj(self): 
          return self.pickedObj 
-
-   def printMe(self): 
-         ob = self.getObjectHit(base.mouseWatcherNode.getMouse()) 
-         print(ob)
-         if(self.pickedObj!=None):
-            (x,y,z) = self.pickedObj.getPos()
-            print(x,y,z)
-            self.pickedObj.setPos(x,y, 3)

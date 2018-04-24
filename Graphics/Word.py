@@ -15,13 +15,12 @@ class Word(DirectObject.DirectObject):
 		color = random.choice(["blue", "red", "green"])
 		path = "Graphics/models/" + color + "sphere.egg"
 		self.sphere = loader.loadModel(path)
-		mousePicker = Picker()
-		mousePicker.makePickable(self.sphere)
-		#self.sphere.reparentTo(render)
+		self.myPicker = Picker(self.onHit)
+		self.myPicker.makePickable(self.sphere)
 		self.sphere.setPos(self.x, self.y, self.z)
 		text = TextNode(label)
 		text.setText(label)
-
+		text.setTextColor(0, 0, 0, 1)
 		text.setAlign(TextNode.ACenter)
 		textNode = self.sphere.attachNewNode(text)
 		textNode.setScale(1.4)
@@ -36,10 +35,14 @@ class Word(DirectObject.DirectObject):
 		an.getPhysicsObject().setMass(3)
 		
 	def move(self):
-		(dx, dy, dz) = (0, 0, -.1)
-		(self.x, self.y, self.z) = (dx + self.x, dy + self.y, dz + self.z) 
-		self.sphere.setPos(self.x, self.y, self.z)
+		(self.x, self.y, self.z) = self.sphere.getPos() 
 		if(self.z<-5):
 		 	self.sphere.removeNode()
 		 	return False
 		return True
+
+	def onHit(self):
+		ob = self.myPicker.getObjectHit(base.mouseWatcherNode.getMouse()) 
+		print(ob)
+		if(ob!=None):
+			NodePath(ob).setPos(10,10,10)

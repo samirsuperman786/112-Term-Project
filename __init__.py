@@ -31,6 +31,7 @@ nodePaths = []
 state = "login"
 myName = ""
 micIndex = None
+leftRegion = (-4, 35, 8)
 
 HOST = "localhost"
 PORT = 50011
@@ -94,6 +95,7 @@ class Display(ShowBase):
                     self.myPID = msg[1]
                     self.otherPlayers[self.myPID] =[]
                 elif(command == "myMicIs"):
+                    global micIndex
                     self.micIndex = micIndex =  int(msg[1])
                 elif(command == "newPlayer"):
                     newPID = msg[1]
@@ -101,14 +103,23 @@ class Display(ShowBase):
                 elif(command == "loginEvent" or command == "logoffEvent"):
                     if(state=="menu"):
                         updateMenu()
+                elif(command == "callEvent"):
+                    if(state=="menu"):
+                        player1 = msg[2]
+                        player2 = msg[3]
+                        if(player1 == myName):
+                            dialFriend(myName, player2)
+                        elif(player2 == myName):
+                            dialFriend(myName, player1)
                 elif(command == "newWord"):
-                    PID = msg[1]
-                    label = msg[2]
-                    x = int(msg[3])
-                    y = int(msg[4])
-                    z = int(msg[5])
-                    newWord = Word(PID, render, x, y, z, label)
-                    self.otherPlayers[PID].append(newWord)
+                    if(state=="inCall"):
+                        PID = msg[1]
+                        label = msg[2]
+                        (x,y,z) = (8, 35, 10)
+                        if(PID ==self.myPID):
+                            x = -8
+                        newWord = Word(render, x, y, z, label)
+                        self.otherPlayers[PID].append(newWord)
             except:
                 print(msg)
                 print("failed")
@@ -117,12 +128,10 @@ class Display(ShowBase):
 
     #grabs words from listenermanager
     def getNewWord(self, task):
-        (startX, startY, startZ) = (-4, 35, 6)
+        (startX, startY, startZ) = (-8, 35, 10)
         if(phrases.empty()==False):
             label = phrases.get()
-            word = Word(render, startX, startY, startZ, label)
-            self.otherPlayers[self.myPID].append(word)
-            msg = "newWord %s %d %d %d\n" % (label, startX + 8, startY, startZ)
+            msg = "newWord %s\n" % (label)
             server.send(msg.encode())
 
         for player in self.otherPlayers:
@@ -130,6 +139,7 @@ class Display(ShowBase):
                 if(word.move()==False):
                     self.otherPlayers[player].remove(word)
         return task.again
+
 
 def createGravity():
     #add gravity
@@ -149,18 +159,20 @@ def loginScreen():
     clearScreen()
     text = TextNode("Username")
     text.setText("Username")
+    text.setTextColor(0, 0, 0, 1)
     textNodePath = aspect2d.attachNewNode(text)
     textNodePath.setScale(.15)
-    textNodePath.setPos(-.9,0,0)
+    textNodePath.setPos(0,0,.2)
     entry = DirectEntry(text = "", scale=.2, command=menuScreen,
     initialText="", numLines = 2, focus=1,
-     frameSize = (-.3,0,0,0))
+     frameSize = (-1.0,0,0,0))
 
     global nodePaths
     nodePaths.append(textNodePath)
     nodePaths.append(entry)
 
 def menuScreen(playerName):
+    clearScreen()
     global myName
     myName= playerName
     global state
@@ -173,33 +185,33 @@ def menuScreen(playerName):
 
 def updateMenu():
     global nodePaths
-    print("updating menu!")
     clearScreen()
     text = TextNode("Online Players")
-    toDisplay = "Welcome back " + myName + "!\n\n"\
-     + "\nOnline players: \n"
+    text.setTextColor(0, 0, 0, 1)
+    toDisplay = "Click to Call! \n"
     online = getOnlinePlayers()
     space = 0
+    if(len(online)==1):
+        toDisplay+= "No players online!"
     for player in online:
         if(player == myName): continue
-        #toDisplay += player + "\n"
-        nodePaths.append(PlayerGraphic(render, -10 + space, 40, -5, player).getBobble())
+        pGraphic = PlayerGraphic(render, -10 + space, 49, -5, player, myName, server)
+        nodePaths.append(pGraphic.getBobble())
         space += 5
-    if(len(online)==0):
-        toDisplay+= "No players online!"
     text.setText(toDisplay)
     textNodePath = aspect2d.attachNewNode(text)
     textNodePath.setScale(.15)
-    textNodePath.setPos(-.9,0,.7)
+    textNodePath.setPos(-.2,0,.2)
     nodePaths.append(textNodePath)
 
 def dialFriend(playerName, friend):
+    clearScreen()
     global state
     state = "inCall"
     initializeListener(micIndex)
     game.loadModels()
-    threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
-    base.disableMouse()
+    loadPrettyLayout(playerName, friend)
+    #base.disableMouse()
     createGravity()
 
 def clearScreen():

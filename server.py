@@ -7,6 +7,7 @@
 import socket
 import threading
 from queue import Queue
+from Database.DatabaseManager import *
 
 HOST = "localhost" # put your IP address here if playing on multiple computers
 PORT = 50011
@@ -15,6 +16,7 @@ BACKLOG = 3
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 server.bind((HOST,PORT))
 server.listen(BACKLOG)
+setOffline()
 print("Looking for connections!")
 
 def handleClient(client, serverChannel, cID, clientele):
@@ -56,7 +58,7 @@ playerNum = 0
 serverChannel = Queue(100)
 threading.Thread(target = serverThread, args = (clientele, serverChannel)).start()
 
-mics = ["1", "2", "1", "2"]
+mics = ["1", "2"]
 
 while True:
   client, address = server.accept()
