@@ -49,3 +49,5 @@ def removeFriend(name, partner):
 
 def clearProfiles():
 	db.profiles.remove()
+
+#clearProfiles()

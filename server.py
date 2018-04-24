@@ -56,19 +56,25 @@ playerNum = 0
 serverChannel = Queue(100)
 threading.Thread(target = serverThread, args = (clientele, serverChannel)).start()
 
-names = ["green", "blue"]
-mics = ["1", "2"]
+mics = ["1", "2", "1", "2"]
 
 while True:
   client, address = server.accept()
   # myID is the key to the client in the clientele dictionary
-  myID = names[playerNum]
+  myID = playerNum
   myMic = mics[playerNum]
-  print(myID, playerNum)
+  print(myID)
+  toRemove = []
   for cID in clientele:
-    print (repr(cID), repr(playerNum))
-    clientele[cID].send(("newPlayer %s\n" % myID).encode())
-    client.send(("newPlayer %s\n" % cID).encode())
+    try:
+      print (repr(cID), repr(playerNum))
+      clientele[cID].send(("newPlayer %s\n" % myID).encode())
+      client.send(("newPlayer %s\n" % cID).encode())
+    except:
+      toRemove.append(cID)
+      continue
+  for removal in toRemove:
+    del clientele[removal]
   clientele[myID] = client
   client.send(("myIDis %s \n" % myID).encode())
   client.send(("myMicIs %s \n" % myMic).encode())

@@ -29,6 +29,7 @@ import copy
 nodePaths = []
 state = "login"
 myName = ""
+micIndex = None
 
 HOST = "localhost"
 PORT = 50011
@@ -82,6 +83,7 @@ class Display(ShowBase):
     def update(self, task):
         while (serverMsg.qsize() > 0):
             msg = serverMsg.get(False)
+            print(msg)
             try:
                 print("received: ", msg, "\n")
                 msg = msg.split()
@@ -90,13 +92,13 @@ class Display(ShowBase):
                     self.myPID = msg[1]
                     self.otherPlayers[self.myPID] =[]
                 elif(command == "myMicIs"):
-                    self.micIndex = int(msg[1])
+                    self.micIndex = micIndex =  int(msg[1])
                 elif(command == "newPlayer"):
                     newPID = msg[1]
                     self.otherPlayers[newPID] = []
-                    updateMenu(myName)
-                elif(command == "loginEvent"):
-                    updateMenu(myName)
+                elif(command == "loginEvent" or command == "logoffEvent"):
+                    if(state=="menu"):
+                        updateMenu()
                 elif(command == "newWord"):
                     PID = msg[1]
                     label = msg[2]
@@ -109,12 +111,6 @@ class Display(ShowBase):
                 print(msg)
                 print("failed")
             serverMsg.task_done()
-
-        for player in self.otherPlayers:
-            for word in self.otherPlayers[player]:
-                pass
-                if(word.move()==False):
-                    self.otherPlayers[player].remove(word)
         return task.cont
 
     #grabs words from listenermanager
@@ -122,10 +118,15 @@ class Display(ShowBase):
         (startX, startY, startZ) = (-4, 35, 6)
         if(phrases.empty()==False):
             label = phrases.get()
-            word = Word(self.myPID, render, startX, startY, startZ, label)
+            word = Word(render, startX, startY, startZ, label)
             self.otherPlayers[self.myPID].append(word)
             msg = "newWord %s %d %d %d\n" % (label, startX + 8, startY, startZ)
             server.send(msg.encode())
+
+        for player in self.otherPlayers:
+            for word in self.otherPlayers[player]:
+                if(word.move()==False):
+                    self.otherPlayers[player].remove(word)
         return task.again
 
 def createGravity():
@@ -152,28 +153,30 @@ def loginScreen():
     initialText="", numLines = 2, focus=1,
      frameSize = (-.3,0,0,0))
 
+    global nodePaths
     nodePaths.append(textNodePath)
     nodePaths.append(entry)
 
 def menuScreen(playerName):
-    state="menu"
-    msg = "loginEvent"
-    server.send(msg.encode())
     global myName
     myName= playerName
+    global state
+    state="menu"
+    msg = "loginEvent %s\n" % myName
+    server.send(msg.encode())
     setOnlineStatus(playerName, True)
-    clearScreen()
     if(isTracked(playerName)==False): newPlayer(playerName)
-    updateMenu(playerName)
+    updateMenu()
 
-def updateMenu(playerName):
+def updateMenu():
+    print("updating menu!")
     clearScreen()
     text = TextNode("Online Players")
-    toDisplay = "Welcome back " + playerName + "!\n\n"\
+    toDisplay = "Welcome back " + myName + "!\n\n"\
      + "\nOnline players: \n"
     online = getOnlinePlayers()
     for player in online:
-        if(player == playerName): continue
+        if(player == myName): continue
         toDisplay += player + "\n"
     if(len(online)==0):
         toDisplay+= "No players online!"
@@ -181,9 +184,11 @@ def updateMenu(playerName):
     textNodePath = aspect2d.attachNewNode(text)
     textNodePath.setScale(.15)
     textNodePath.setPos(-.9,0,.7)
+    global nodePaths
     nodePaths.append(textNodePath)
 
 def dialFriend(playerName, friend):
+    global state
     state = "inCall"
     initializeListener(micIndex)
     game.loadModels()
@@ -193,16 +198,19 @@ def dialFriend(playerName, friend):
 
 def clearScreen():
     global nodePaths
-    tmp = copy.copy(nodePaths)
-    for path in tmp:
+    for path in nodePaths:
         path.removeNode()
-        nodePaths.remove(path)
+    nodePaths = []
 
 def userLogOff():
-    setOnlineStatus(myName, False)
+    if(state!="login"):
+        setOnlineStatus(myName, False)
+    msg = "logoffEvent %s\n" %myName
+    server.send(msg.encode())
 
 if __name__ == "__main__":
     base.exitFunc = userLogOff
-    serverMsg = Queue(100)
     game = Display()
+    serverMsg = Queue(100)
+    threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
     start()

@@ -3,14 +3,16 @@ from direct.showbase import DirectObject
 from Utils.Picker import *
 import direct.directbase.DirectStart
 from panda3d.physics import *
+import random
 
 #Word object which tracks and moves its location
 class Word(DirectObject.DirectObject):
-	def __init__(self, color, render, x, y, z, label):
+	def __init__(self, render, x, y, z, label):
 		self.x = x
 		self.y = y
 		self.z = z
 		self.label = label 
+		color = random.choice(["blue", "red", "green"])
 		path = "Graphics/models/" + color + "sphere.egg"
 		self.sphere = loader.loadModel(path)
 		mousePicker = Picker()
