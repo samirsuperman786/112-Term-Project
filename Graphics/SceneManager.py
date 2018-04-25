@@ -1,5 +1,10 @@
 from panda3d.core import *
-def setupScene(displayInstance, render):
+from direct.task.Task import Task
+from direct.showbase import DirectObject
+import direct.directbase.DirectStart
+
+#got landscape from https://free3d.com/3d-model/desert-26147.html
+def setupScene(render):
 	#add one light per face, so each face is nicely illuminated
 	plight1 = PointLight('plight')
 	plight1.setColor(VBase4(1, 1, 1, 1))
@@ -37,10 +42,59 @@ def setupScene(displayInstance, render):
 	plight6NodePath.setPos(-500,0, 0)
 	render.setLight(plight6NodePath)
 
-	# Load the environment model.
-	displayInstance.scene = loader.loadModel("models/environment")
+def setupMenuBackground(render):
+	scene = loader.loadModel("Graphics/models/landscape.egg")
+	scene.reparentTo(render)
+	scene.setScale(1)
+	scene.setPos(3.5, 4, -.3)
+	return scene
+
+def loadBackground(render):
+	# # Load the environment model.
+	scene = loader.loadModel("models/environment")
 	# Reparent the model to render.
-	displayInstance.scene.reparentTo(render)
+	scene.reparentTo(render)
 	# Apply scale and position transforms on the model.
-	displayInstance.scene.setScale(0.25, 0.25, 0.25)
-	displayInstance.scene.setPos(-20, 50, 0)
+	scene.setScale(.25)
+	scene.setPos(60, 20, -2)
+
+	# displayInstance.ocean = loader.loadModel("Graphics/models/ocean.egg")
+	# displayInstance.ocean.reparentTo(render)
+	# displayInstance.ocean.setPos(0, 30, -2)
+	#displayInstance.ocean.setScale(.5)
+
+def loadPrettyLayout(myName, friendName):
+		(x,y,z) = (-4, 15, -2)
+		createDiamond(x, y, z, myName)
+		createDiamond(x+8, y, z, friendName)
+
+        # taskMgr.doMethodLater(1, rotateDiamond,
+        #  extraArgs = [diamond1], appendTask = True)
+
+def createDiamond(x,y,z, myName):
+	# diamond = loader.loadModel("Graphics/models/icon.egg")
+	# diamond.reparentTo(render)
+	text = TextNode(myName)
+	text.setText(myName)
+	text.setTextColor(0, 0, 0, 1)
+
+	# textNode = diamond.attachNewNode(text)
+	textNode = render.attachNewNode(text)
+	text.setAlign(TextNode.ACenter)
+	textNode.setScale(.7)
+	textNode.setPos(x,y,z)
+	#textNode.setHpr(-90,0,0)
+	#diamond.setScale(.5)
+
+	# diamond.setPos(x,y,z)
+	# diamond.setHpr(90,0,0)
+
+def rotateDiamond(obj, task):
+
+	(y,p,r) = obj.getHpr()
+	obj.setHpr(y,p,r+4)
+
+	return task.again
+
+
+

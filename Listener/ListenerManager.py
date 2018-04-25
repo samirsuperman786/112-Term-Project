@@ -10,7 +10,6 @@ import queue
 #from Listener.VolumeReader import *
 
 phrases = queue.Queue()
-phrases.put("hi")
 
 #starts the listener
 def initializeListener(micIndex):
