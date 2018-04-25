@@ -7,12 +7,11 @@ import random
 
 #Word object which tracks and moves its location
 class Word(DirectObject.DirectObject):
-	def __init__(self, render, x, y, z, label):
+	def __init__(self, render, x, y, z, label, color):
 		self.x = x
 		self.y = y
 		self.z = z
-		self.label = label 
-		color = random.choice(["blue", "red", "green"])
+		self.label = label
 		path = "Graphics/models/" + color + "sphere.egg"
 		self.sphere = loader.loadModel(path)
 		self.myPicker = Picker(self.onHit)
@@ -37,8 +36,9 @@ class Word(DirectObject.DirectObject):
 	def move(self):
 		(x, y, z) = self.sphere.getPos() 
 		if(z<-5):
-		 	self.sphere.removeNode()
-		 	return False
+			print(z)
+			self.sphere.detachNode()
+			return False
 		return True
 
 	def onHit(self):

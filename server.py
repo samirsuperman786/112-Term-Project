@@ -1,8 +1,4 @@
-#############################
-# Sockets Server Demo
-# by Rohan Varma
-# adapted by Kyle Chin
-#############################
+#Code adapted from optional lecture
 
 import socket
 import threading
@@ -65,7 +61,6 @@ while True:
   # myID is the key to the client in the clientele dictionary
   myID = playerNum
   myMic = mics[playerNum]
-  print(myID)
   toRemove = []
   for cID in clientele:
     try:

@@ -17,7 +17,7 @@ def initializeListener(micIndex):
     m = sr.Microphone(device_index=micIndex)
     with sr.Microphone() as source:
         r.adjust_for_ambient_noise(source, duration = 0.5) 
-        r.listen_in_background(m, translate, 2)
+        r.listen_in_background(m, translate, 1.5)
 
 #translates audio to text
 def translate(recognizer, audio):

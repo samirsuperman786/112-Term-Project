@@ -2,6 +2,8 @@ from panda3d.core import *
 from Utils.Picker import * 
 from direct.showbase import DirectObject
 import direct.directbase.DirectStart
+
+#calling selection
 class PlayerGraphic(object):
 	def __init__(self, x, y, z, label, myPlayerName, server):
 		self.x = x

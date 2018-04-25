@@ -1,7 +1,4 @@
-#Code adapted from optional lecture
-
 from pymongo import MongoClient
-#Assumes you have a running Mongod instance on port 27017
 client = MongoClient()
 
 db = client.userdb
