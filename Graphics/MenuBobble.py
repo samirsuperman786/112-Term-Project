@@ -1,7 +1,9 @@
 from panda3d.core import *
 from Utils.Picker import * 
+from direct.showbase import DirectObject
+import direct.directbase.DirectStart
 class PlayerGraphic(object):
-	def __init__(self, render, x, y, z, label, myPlayerName, server):
+	def __init__(self, x, y, z, label, myPlayerName, server):
 		self.x = x
 		self.y = y
 		self.z = z
@@ -14,12 +16,14 @@ class PlayerGraphic(object):
 		self.myPicker = Picker(self.onHit)
 		self.myPicker.makePickable(self.sphere, label)
 		self.sphere.setPos(self.x, self.y, self.z)
+		self.sphere.setScale(.07)
 		text = TextNode(label)
 		text.setText(label)
 		text.setAlign(TextNode.ACenter)
+		text.setTextColor(0, 0, 0, 1)
 		textNode = self.sphere.attachNewNode(text)
-		textNode.setScale(1.4)
-		textNode.setPos(0,-2,0)
+		textNode.setScale(1.2)
+		textNode.setPos(0,-2,.3)
 		self.sphere.reparentTo(render)
 		
 	def move(self, dx, dy, dz):

@@ -167,6 +167,7 @@ def loginScreen():
     initialText="", numLines = 2, focus=1,
      frameSize = (-1.0,0,0,0))
 
+    #pGraphic = PlayerGraphic(-.2, 2, -.2, "player", "myName", server)
     global nodePaths
     nodePaths.append(textNodePath)
     nodePaths.append(entry)
@@ -195,7 +196,8 @@ def updateMenu():
         toDisplay+= "No players online!"
     for player in online:
         if(player == myName): continue
-        pGraphic = PlayerGraphic(render, -10 + space, 49, -5, player, myName, server)
+        # pGraphic = PlayerGraphic(render, -10 + space, 49, -5, player, myName, server)
+        pGraphic = PlayerGraphic(-.2, 2, -.2, player, myName, server)
         nodePaths.append(pGraphic.getBobble())
         space += 5
     text.setText(toDisplay)

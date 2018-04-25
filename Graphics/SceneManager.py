@@ -3,6 +3,7 @@ from direct.task.Task import Task
 from direct.showbase import DirectObject
 import direct.directbase.DirectStart
 
+#got landscape from https://free3d.com/3d-model/desert-26147.html
 def setupScene(render):
 	#add one light per face, so each face is nicely illuminated
 	plight1 = PointLight('plight')
@@ -11,11 +12,11 @@ def setupScene(render):
 	plight1NodePath.setPos(0, 0, 500)
 	render.setLight(plight1NodePath)
 
-	# plight2 = PointLight('plight')
-	# plight2.setColor(VBase4(1, 1, 1, 1))
-	# plight2NodePath = render.attachNewNode(plight2)
-	# plight2NodePath.setPos(0, 0, -500)
-	# render.setLight(plight2NodePath)
+	plight2 = PointLight('plight')
+	plight2.setColor(VBase4(1, 1, 1, 1))
+	plight2NodePath = render.attachNewNode(plight2)
+	plight2NodePath.setPos(0, 0, -500)
+	render.setLight(plight2NodePath)
 
 	plight3 = PointLight('plight')
 	plight3.setColor(VBase4(1, 1, 1, 1))
@@ -45,7 +46,6 @@ def setupScene(render):
 	scene.reparentTo(render)
 	scene.setScale(1)
 	scene.setPos(3.5, 4, -.3)
-
 
 def loadBackground(displayInstance):
 	# # Load the environment model.
