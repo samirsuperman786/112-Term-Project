@@ -1,11 +1,8 @@
 #adapted from https://www.panda3d.org/manual/index.php?title=Example_for_Clicking_on_3D_Objects&oldid=3196
-#import direct.directbase.DirectStart 
-#for the events 
 from direct.showbase import DirectObject 
 #for collision stuff 
 from panda3d.core import * 
 from Graphics.Word import *
-
 
 class Picker(DirectObject.DirectObject): 
    def __init__(self, funcToCall=None): 

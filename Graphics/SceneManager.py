@@ -3,7 +3,7 @@ from direct.task.Task import Task
 from direct.showbase import DirectObject
 import direct.directbase.DirectStart
 
-#got landscape from https://free3d.com/3d-model/desert-26147.html
+#got lighting from optional lecture
 def setupScene(render):
 	#add one light per face, so each face is nicely illuminated
 	plight1 = PointLight('plight')
@@ -42,31 +42,32 @@ def setupScene(render):
 	plight6NodePath.setPos(-500,0, 0)
 	render.setLight(plight6NodePath)
 
+
+#got landscape from https://free3d.com/3d-model/desert-26147.html
 def setupMenuBackground(render):
 	scene = loader.loadModel("Graphics/models/landscape.egg")
 	scene.reparentTo(render)
 	scene.setScale(1)
-	scene.setPos(3.5, 4, -.3)
+	scenePos = (3.5, 4, -.3)
+	scene.setPos(scenePos)
+	# firstLoc = (-.9, 2, .5)
+	# secondLoc = (-.9, 2, -.3) 
+	# introAnimation(firstLoc)
+	# introAnimation(secondLoc)
 	return scene
 
+#default background from panda3d
 def loadBackground(render):
-	# # Load the environment model.
 	scene = loader.loadModel("models/environment")
-	# Reparent the model to render.
 	scene.reparentTo(render)
-	# Apply scale and position transforms on the model.
 	scene.setScale(.25)
 	scene.setPos(60, 20, -2)
 
-	# displayInstance.ocean = loader.loadModel("Graphics/models/ocean.egg")
-	# displayInstance.ocean.reparentTo(render)
-	# displayInstance.ocean.setPos(0, 30, -2)
-	#displayInstance.ocean.setScale(.5)
-
 def loadPrettyLayout(myName, friendName):
 		(x,y,z) = (-4, 15, -2)
+		space = 8
 		createDiamond(x, y, z, myName)
-		createDiamond(x+8, y, z, friendName)
+		createDiamond(x+space, y, z, friendName)
 
         # taskMgr.doMethodLater(1, rotateDiamond,
         #  extraArgs = [diamond1], appendTask = True)
@@ -90,11 +91,28 @@ def createDiamond(x,y,z, myName):
 	# diamond.setHpr(90,0,0)
 
 def rotateDiamond(obj, task):
-
 	(y,p,r) = obj.getHpr()
 	obj.setHpr(y,p,r+4)
-
 	return task.again
+
+class introAnimation(object):
+	def __init__(self, x, y, z):
+		self.star = loader.loadModel("Graphics/models/star.egg")
+		self.star.reparentTo(render)
+		self.speedX = .01
+		self.star.setScale(.05)
+		self.bound = x
+		self.star.setPos(x,y,z)
+		taskMgr.doMethodLater(.005, self.animate, "starAnimation")
+
+	def animate(self, task):
+		(x,y,z) = self.star.getPos()
+		self.star.setPos(x + self.speedX, y, z)
+		if(x> self.bound):
+			self.star.setPos(self.bound, y, z)
+		return task.again
+
+
 
 
 

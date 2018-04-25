@@ -1,4 +1,4 @@
-#Server code and panda3d code adapted from optional lectures
+#Server code adapted from optional lectures
 
 from panda3d.core import *
 from direct.showbase.ShowBase import ShowBase
@@ -19,7 +19,6 @@ from Graphics.Word import *
 from Graphics.CloudManager import *
 from Graphics.SceneManager import *
 from Database.DatabaseManager import *
-from Utils.CustomString import *
 from Graphics.MenuBobble import *
 
 import socket
@@ -72,7 +71,7 @@ class Display(ShowBase):
         loadBackground(render)
         loadClouds(render)
         #timerFired
-        newWordTimer = 1
+        newWordTimer = .7
         moveCloudTimer = .02
         taskMgr.doMethodLater(newWordTimer, self.getNewWord, "word")
         taskMgr.doMethodLater(moveCloudTimer, moveClouds, "cloud")
@@ -87,9 +86,8 @@ class Display(ShowBase):
     def update(self, task):
         while (serverMsg.qsize() > 0):
             msg = serverMsg.get(False)
-            print(msg)
             try:
-                print("received: ", msg, "\n")
+                #print("received: ", msg, "\n")
                 msg = msg.split()
                 command = msg[0]
                 global state
@@ -102,14 +100,12 @@ class Display(ShowBase):
                     self.micIndex = int(msg[1])
                 elif(command == "newPlayer"):
                     newPID = msg[1]
-                    self.otherPlayers[newPID] = []
+                    self.otherPlayers[newPID] = list()
                 elif(command == "loginEvent" or command == "logoffEvent"):
                     if(state=="menu"):
                         updateMenu()
                 elif(command == "callEvent"):
-
                     if(state=="menu"):
-                       
                         state = "inCall"
                         player1 = msg[2]
                         player2 = msg[3]
@@ -122,9 +118,11 @@ class Display(ShowBase):
                         PID = msg[1]
                         label = msg[2]
                         (x,y,z) = (8, 35, 10)
+                        color = "red"
                         if(PID ==self.myPID):
                             x = -8
-                        newWord = Word(render, x, y, z, label)
+                            color = "blue"
+                        newWord = Word(render, x, y, z, label, color)
                         self.otherPlayers[PID].append(newWord)
             except:
                 print(msg)
@@ -236,6 +234,10 @@ def userLogOff():
 
 if __name__ == "__main__":
     base.exitFunc = userLogOff
+    wp = WindowProperties() 
+    wp.setSize(1920, 1080) 
+    wp.setTitle("ChatWorld")
+    base.win.requestProperties(wp) 
     game = Display()
     serverMsg = Queue(100)
     threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
