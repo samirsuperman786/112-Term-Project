@@ -238,6 +238,7 @@ if __name__ == "__main__":
     wp.setSize(1920, 1080) 
     wp.setTitle("ChatWorld")
     base.win.requestProperties(wp) 
+    base.disableMouse()
     game = Display()
     serverMsg = Queue(100)
     threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
