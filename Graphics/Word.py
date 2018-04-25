@@ -35,8 +35,8 @@ class Word(DirectObject.DirectObject):
 		an.getPhysicsObject().setMass(3)
 		
 	def move(self):
-		(self.x, self.y, self.z) = self.sphere.getPos() 
-		if(self.z<-5):
+		(x, y, z) = self.sphere.getPos() 
+		if(z<-5):
 		 	self.sphere.removeNode()
 		 	return False
 		return True

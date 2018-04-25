@@ -15,7 +15,6 @@ phrases = queue.Queue()
 def initializeListener(micIndex):
     r = sr.Recognizer()
     m = sr.Microphone(device_index=micIndex)
-    print(sr.Microphone.list_microphone_names()[micIndex])
     with sr.Microphone() as source:
         r.adjust_for_ambient_noise(source, duration = 0.5) 
         r.listen_in_background(m, translate, 2)

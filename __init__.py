@@ -32,6 +32,7 @@ state = "login"
 myName = ""
 micIndex = None
 leftRegion = (-4, 35, 8)
+scene = None
 
 HOST = "localhost"
 PORT = 50011
@@ -67,12 +68,12 @@ class Display(ShowBase):
         taskMgr.doMethodLater(updateTimer, self.update, "update")
         
     def loadModels(self):
-        setupScene(render)# load lights and the fancy background
-        loadBackground(self)
+        #setupScene(render)# load lights and the fancy background
+        loadBackground(render)
         loadClouds(render)
         #timerFired
         newWordTimer = 1
-        moveCloudTimer = .01
+        moveCloudTimer = .02
         taskMgr.doMethodLater(newWordTimer, self.getNewWord, "word")
         taskMgr.doMethodLater(moveCloudTimer, moveClouds, "cloud")
 
@@ -91,12 +92,14 @@ class Display(ShowBase):
                 print("received: ", msg, "\n")
                 msg = msg.split()
                 command = msg[0]
+                global state
                 if(command== "myIDis"):
                     self.myPID = msg[1]
                     self.otherPlayers[self.myPID] =[]
                 elif(command == "myMicIs"):
                     global micIndex
-                    self.micIndex = micIndex =  int(msg[1])
+                    micIndex = int(msg[1])
+                    self.micIndex = int(msg[1])
                 elif(command == "newPlayer"):
                     newPID = msg[1]
                     self.otherPlayers[newPID] = []
@@ -104,7 +107,10 @@ class Display(ShowBase):
                     if(state=="menu"):
                         updateMenu()
                 elif(command == "callEvent"):
+
                     if(state=="menu"):
+                       
+                        state = "inCall"
                         player1 = msg[2]
                         player2 = msg[3]
                         if(player1 == myName):
@@ -153,10 +159,11 @@ def createGravity():
 def start():
     loginScreen()
     setupScene(render)
+    global scene
+    scene = setupMenuBackground(render)
     base.run()
  
 def loginScreen():
-    clearScreen()
     text = TextNode("Username")
     text.setText("Username")
     text.setTextColor(0, 0, 0, 1)
@@ -166,22 +173,19 @@ def loginScreen():
     entry = DirectEntry(text = "", scale=.2, command=menuScreen,
     initialText="", numLines = 2, focus=1,
      frameSize = (-1.0,0,0,0))
-
-    #pGraphic = PlayerGraphic(-.2, 2, -.2, "player", "myName", server)
     global nodePaths
     nodePaths.append(textNodePath)
     nodePaths.append(entry)
 
 def menuScreen(playerName):
-    clearScreen()
     global myName
     myName= playerName
     global state
     state="menu"
     msg = "loginEvent %s\n" % myName
     server.send(msg.encode())
-    setOnlineStatus(playerName, True)
     if(isTracked(playerName)==False): newPlayer(playerName)
+    setOnlineStatus(playerName, True)
     updateMenu()
 
 def updateMenu():
@@ -189,14 +193,13 @@ def updateMenu():
     clearScreen()
     text = TextNode("Online Players")
     text.setTextColor(0, 0, 0, 1)
-    toDisplay = "Click to Call! \n"
+    toDisplay = "Click to Call: \n"
     online = getOnlinePlayers()
     space = 0
     if(len(online)==1):
         toDisplay+= "No players online!"
     for player in online:
         if(player == myName): continue
-        # pGraphic = PlayerGraphic(render, -10 + space, 49, -5, player, myName, server)
         pGraphic = PlayerGraphic(-.2, 2, -.2, player, myName, server)
         nodePaths.append(pGraphic.getBobble())
         space += 5
@@ -207,14 +210,18 @@ def updateMenu():
     nodePaths.append(textNodePath)
 
 def dialFriend(playerName, friend):
+    global micIndex
+    global scene
+    print("DIALING!")
     clearScreen()
-    global state
-    state = "inCall"
+    if(scene!=None):
+        scene.removeNode()
+        scene=None
     initializeListener(micIndex)
-    game.loadModels()
     loadPrettyLayout(playerName, friend)
     #base.disableMouse()
     createGravity()
+    game.loadModels()
 
 def clearScreen():
     global nodePaths

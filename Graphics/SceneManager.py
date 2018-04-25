@@ -42,19 +42,21 @@ def setupScene(render):
 	plight6NodePath.setPos(-500,0, 0)
 	render.setLight(plight6NodePath)
 
+def setupMenuBackground(render):
 	scene = loader.loadModel("Graphics/models/landscape.egg")
 	scene.reparentTo(render)
 	scene.setScale(1)
 	scene.setPos(3.5, 4, -.3)
+	return scene
 
-def loadBackground(displayInstance):
+def loadBackground(render):
 	# # Load the environment model.
-	displayInstance.scene = loader.loadModel("models/environment")
+	scene = loader.loadModel("models/environment")
 	# Reparent the model to render.
-	displayInstance.scene.reparentTo(render)
+	scene.reparentTo(render)
 	# Apply scale and position transforms on the model.
-	displayInstance.scene.setScale(1, 1, 1)
-	displayInstance.scene.setPos(50, 50, -2)
+	scene.setScale(.25)
+	scene.setPos(60, 20, -2)
 
 	# displayInstance.ocean = loader.loadModel("Graphics/models/ocean.egg")
 	# displayInstance.ocean.reparentTo(render)

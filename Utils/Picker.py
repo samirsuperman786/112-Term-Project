@@ -1,3 +1,4 @@
+#adapted from https://www.panda3d.org/manual/index.php?title=Example_for_Clicking_on_3D_Objects&oldid=3196
 #import direct.directbase.DirectStart 
 #for the events 
 from direct.showbase import DirectObject 
