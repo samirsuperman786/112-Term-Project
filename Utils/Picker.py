@@ -5,12 +5,12 @@ from panda3d.core import *
 from Graphics.Word import *
 
 class Picker(DirectObject.DirectObject): 
-   def __init__(self, funcToCall=None): 
+   def __init__(self, funcToCall, activeScreen): 
       #setup collision stuff 
-
+      self.mySound = base.loader.loadSfx("Graphics/sounds/pop.ogg")
+      self.activeScreen = activeScreen
       self.myTraverser = CollisionTraverser()
-      self.picker= CollisionTraverser() 
-      self.queue=CollisionHandlerQueue() 
+      self.queue= CollisionHandlerQueue() 
 
       self.pickerNode=CollisionNode('mouseRay') 
       self.pickerNP=camera.attachNewNode(self.pickerNode) 
@@ -25,18 +25,20 @@ class Picker(DirectObject.DirectObject):
 
       #this holds the object that has been picked 
       self.pickedObj=None 
+      self.tag = ""
 
       self.accept('mouse1', funcToCall) 
 
    #this function is meant to flag an object as being somthing we can pick 
-   def makePickable(self, newObj, val = "True"): 
-      newObj.setTag("pickable", val) 
+   def makePickable(self, newObj, val = "True", tagName = "pickable"): 
+      self.tag = tagName
+      newObj.setTag(tagName, val) 
 
    #this function finds the closest object to the camera that has been hit by our ray 
    def getObjectHit(self, mpos): #mpos is the position of the mouse on the screen 
       self.pickedObj=None #be sure to reset this 
       self.pickerRay.setFromLens(base.camNode, mpos.getX(),mpos.getY()) 
-      self.myTraverser.traverse(render) 
+      self.myTraverser.traverse(self.activeScreen) 
       if self.queue.getNumEntries() > 0: 
          self.queue.sortEntries() 
          self.pickedObj=self.queue.getEntry(0).getIntoNodePath() 
@@ -44,10 +46,11 @@ class Picker(DirectObject.DirectObject):
          parent=self.pickedObj.getParent() 
          self.pickedObj=None 
 
-         while parent != render: 
-            tag = parent.getTag("pickable")
+         while parent != self.activeScreen: 
+            tag = parent.getTag(self.tag)
             if tag!="":
-               self.pickedObj=parent 
+               self.pickedObj=parent
+               self.mySound.play()
                return parent 
             else: 
                parent=parent.getParent() 

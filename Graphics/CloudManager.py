@@ -5,18 +5,18 @@ clouds = []
 rainDrops = []
 
 #loads clouds and places them with spacing
-def loadClouds(render):
+def loadClouds(activeScreen):
 	(x, y, z) = (-10, 20, 5)
 	numClouds = 4
 	spacing = 35/numClouds
 
 	for i in range(numClouds):
 		position = ((spacing * i) + x, y, z)
-		clouds.append(Cloud(render, position))
+		clouds.append(Cloud(activeScreen, position))
 
-	loadRain(render)
+	loadRain(activeScreen)
 
-def loadRain(render):
+def loadRain(activeScreen):
 	(x, y, z) = (-5, 10, 5)
 	numRainDrops = 5
 	spacing = 2
@@ -24,7 +24,7 @@ def loadRain(render):
 	for i in range(numRainDrops):
 		z = random.randint(0, 10)
 		position = ((spacing * i) + x, y, z)
-		rainDrops.append(RainDrop(render, position))
+		rainDrops.append(RainDrop(activeScreen, position))
 
 #moves all clouds every task interval
 def moveClouds(task):
@@ -36,12 +36,12 @@ def moveClouds(task):
 
 #Cloud object that tracks position
 class Cloud(object):
-	def __init__(self, render, position):
+	def __init__(self, activeScreen, position):
 		path = "Graphics/models/cloud.egg"
 		(x, y, z) = position
 		self.cloud = loader.loadModel(path)
 		self.position = position
-		self.cloud.reparentTo(render)
+		self.cloud.reparentTo(activeScreen)
 		self.cloud.setPos(x, y, z)
 		self.speed = .1
 
@@ -55,11 +55,11 @@ class Cloud(object):
 
 #Cloud object that tracks position
 class RainDrop(object):
-	def __init__(self, render, position):
+	def __init__(self, activeScreen, position):
 		path = "Graphics/models/rain.egg"
 		(x, y, z) = position
 		self.rainDrop = loader.loadModel(path)
-		self.rainDrop.reparentTo(render)
+		self.rainDrop.reparentTo(activeScreen)
 		self.rainDrop.setPos(x, y, z)
 		self.speed = .1
 

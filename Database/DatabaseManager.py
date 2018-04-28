@@ -8,10 +8,11 @@ def isTracked(name):
 	return db.profiles.find_one({"name":name})!=None
 
 #creates a player profile in the database
-def newPlayer(name):
+def newPlayer(name, password):
 	profile = {"name" : name,
 		"friendsList" : [],
-		"isOnline" : True}
+		"isOnline" : True,
+		"password":passwordHasher(password)}
 	db.profiles.insert_one(profile).inserted_id
 
 def setOnlineStatus(name, state):
@@ -50,3 +51,23 @@ def clearProfiles():
 def setOffline():
 	for profile in db.profiles.find():
 		db.profiles.update_one(profile, {"$set": {"isOnline": False}})
+
+def getStoredPassword(name):
+	try:
+		return db.profiles.find_one({"name": name})["password"]
+	except:
+		return None
+
+
+#inspiration from https://stackoverflow.com/questions/2624192/good-hash-function-for-strings
+def passwordHasher(input):
+	hash = 19 
+	input = str(input)
+	for i in range(len(input)):
+		hash = hash * 31 + ord(input[i])
+	return hash
+
+def doPasswordsMatch(input, stored):
+	return passwordHasher(input)==stored
+
+#clearProfiles()
