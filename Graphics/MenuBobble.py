@@ -4,7 +4,7 @@ from direct.showbase import DirectObject
 import direct.directbase.DirectStart
 
 class clickableOption(object):
-	def __init__(self, x, y, z, label, funcOnPress):
+	def __init__(self, x, y, z, label, funcOnPress, activeScreen):
 		self.x = x
 		self.y = y
 		self.z = z
@@ -12,7 +12,7 @@ class clickableOption(object):
 		self.funcOnPress = funcOnPress
 		path = "Graphics/models/redsphere.egg"
 		self.sphere = loader.loadModel(path)
-		self.myPicker = Picker(self.onHit)
+		self.myPicker = Picker(self.onHit, activeScreen)
 		self.myPicker.makePickable(self.sphere, label, label)
 		self.sphere.setPos(self.x, self.y, self.z)
 		self.sphere.setScale(.02)
@@ -23,11 +23,10 @@ class clickableOption(object):
 		textNode = self.sphere.attachNewNode(text)
 		textNode.setScale(1.2)
 		textNode.setPos(0,-2,.3)
-		self.sphere.reparentTo(render)
+		self.sphere.reparentTo(activeScreen)
 
 	def onHit(self):
 		ob = self.myPicker.getObjectHit(base.mouseWatcherNode.getMouse()) 
-		#print(ob)
 		if(ob!=None):
 			self.funcOnPress()
 
@@ -44,7 +43,7 @@ class PlayerGraphic(object):
 		self.called = False
 		path = "Graphics/models/greensphere.egg"
 		self.sphere = loader.loadModel(path)
-		self.myPicker = Picker(self.onHit)
+		self.myPicker = Picker(self.onHit, activeScreen)
 		self.myPicker.makePickable(self.sphere, label)
 		self.sphere.setPos(self.x, self.y, self.z)
 		self.sphere.setScale(.07)
@@ -66,10 +65,8 @@ class PlayerGraphic(object):
 
 	def onHit(self):
 		ob = self.myPicker.getObjectHit(base.mouseWatcherNode.getMouse()) 
-		#print(ob)
 		if(ob!=None and self.called == False):
 			self.called = True
 			selection = ob.getTag("pickable")
-			print("selected", selection)
 			msg = "callEvent %s %s\n"% (self.myPlayerName, selection)
 			self.server.send(msg.encode())

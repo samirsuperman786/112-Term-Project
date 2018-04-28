@@ -15,7 +15,7 @@ class Word(DirectObject.DirectObject):
 		path = "Graphics/models/" + color + "sphere.egg"
 		self.sphere = loader.loadModel(path)
 		self.sphere.setScale(1.1)
-		self.myPicker = Picker(self.onHit)
+		self.myPicker = Picker(self.onHit, activeScreen)
 		self.myPicker.makePickable(self.sphere)
 		self.sphere.setPos(self.x, self.y, self.z)
 		text = TextNode(label)

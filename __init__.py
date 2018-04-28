@@ -25,6 +25,9 @@ import socket
 import threading
 from queue import Queue
 import copy
+import time
+import datetime
+
 
 class Struct(object): pass
 data = Struct()
@@ -123,11 +126,19 @@ class Display(ShowBase):
                         label = msg[2]
                         (x,y,z) = (8, 35, 10)
                         color = "red"
+                        textLine = data.friend + ": " + label
                         if(PID ==self.myPID):
                             x = -8
                             color = "blue"
-                        newWord = Word(render, x, y, z, label, color)
+                            textLine = data.myName + ": " + label
+                        data.transcript.append(textLine)
+                        newWord = Word(data.activeScreen3d, x, y, z, label, color)
                         self.otherPlayers[PID].append(newWord)
+                elif(command == "popWord"):
+                    if(data.state=="inCall"):
+                        PID = msg[1]
+                        label = msg[2]
+                        (x, y, z) = msg[3], msg[4], msg[5]
             except:
                 print(msg)
                 print("failed")
@@ -165,6 +176,7 @@ def initializeVariables():
     data.micIndex = None
     data.leftRegion = (-4, 35, 8)
     data.friend = ""
+    data.transcript = []
 
 def goBackToLogin():
     global data
@@ -176,13 +188,15 @@ def goBackToLogin():
 def goBackToMenu(tmp):
     global data
     data.state="menu"
+    msg = "loginEvent %s\n" % data.myName
+    server.send(msg.encode())
     updateMenu()
 
 def start():
     global data
     loginScreen()
     setupLighting(render)
-    clickableOption(-.4, 1.1, -.2, "Menu", goBackToLogin)
+    clickableOption(-.4, 1.1, -.25, "Menu", goBackToLogin, render)
     base.run()
 
 def loginScreen():
@@ -257,7 +271,7 @@ def updateMenu():
         toDisplay+= "No players online!"
     for player in online:
         if(player == data.myName): continue
-        pGraphic = PlayerGraphic(-.2, 2, -.2, player, data.myName, server, data.activeScreen3d)
+        PlayerGraphic(-.2, 2, -.2, player, data.myName, server, data.activeScreen3d)
         space += 5
     text.setText(toDisplay)
     textNodePath = data.activeScreen2d.attachNewNode(text)
@@ -273,6 +287,7 @@ def dialFriend(playerName, friend):
     loadPrettyLayout(playerName, friend, data.activeScreen2d)
     #base.disableMouse()
     createGravity()
+    clickableOption(-.25, 1.1, -.25, "Transcript", downloadTranscript, data.activeScreen3d)
     game.loadModels()
 
 def clearScreen():
@@ -283,16 +298,21 @@ def clearScreen():
     for path in data.activeScreen2d.getChildren():
         path.detachNode()
 
-    # for path in aspect2d.getChildren():
-    #     if(path!=render):
-    #         path.detachNode()
-
 def userLogOff():
     global data
     setOnlineStatus(data.myName, False)
     msg = "logoffEvent %s\n" % data.myName
     server.send(msg.encode())
     stopListener()
+
+def downloadTranscript():
+    ts = time.time()
+    fileName = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H-%M-%S')
+    path = os.environ["HOMEPATH"] + os.sep + "Desktop" + os.sep + fileName + ".txt"
+    f = open(path,"w+")
+    for line in data.transcript:
+        f.write(line + "\n")
+    f.close()
 
 if __name__ == "__main__":
     base.exitFunc = userLogOff

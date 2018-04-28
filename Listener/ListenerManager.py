@@ -11,11 +11,12 @@ import queue
 
 stop = None
 phrases = queue.Queue()
-phrases.put("Connected!")
 
 #starts the listener
 def initializeListener(micIndex):
     global stop
+    global phrases
+    phrases.put("Connected!")
     r = sr.Recognizer()
     m = sr.Microphone(device_index=micIndex)
     with sr.Microphone() as source:
@@ -24,8 +25,9 @@ def initializeListener(micIndex):
 
 def stopListener():
     global stop
-    stop()
-    stop = None
+    if(stop!=None):
+        stop()
+        stop = None
 
 #translates audio to text
 def translate(recognizer, audio):
