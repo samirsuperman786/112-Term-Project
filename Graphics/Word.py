@@ -14,6 +14,7 @@ class Word(DirectObject.DirectObject):
 		self.label = label
 		path = "Graphics/models/" + color + "sphere.egg"
 		self.sphere = loader.loadModel(path)
+		self.sphere.setScale(1.1)
 		self.myPicker = Picker(self.onHit)
 		self.myPicker.makePickable(self.sphere)
 		self.sphere.setPos(self.x, self.y, self.z)
@@ -22,7 +23,7 @@ class Word(DirectObject.DirectObject):
 		text.setTextColor(0, 0, 0, 1)
 		text.setAlign(TextNode.ACenter)
 		textNode = self.sphere.attachNewNode(text)
-		textNode.setScale(1.4)
+		textNode.setScale(1.3)
 		textNode.setPos(0,-2,0)
 		####
 		node = NodePath(label)
@@ -43,6 +44,15 @@ class Word(DirectObject.DirectObject):
 
 	def onHit(self):
 		ob = self.myPicker.getObjectHit(base.mouseWatcherNode.getMouse()) 
-		print(ob)
 		if(ob!=None):
-			NodePath(ob).setPos(10,10,10)
+			(choice1, choice2) = (self.getChoice(), self.getChoice())
+			if(choice1 == "move" or choice2 == "move"):
+				(x,y,z) = ob.getPos()
+				(dx,dy,dz) = (random.randint(0,5),random.randint(0,5),random.randint(0,5))
+				ob.setPos(x+dx,y+dy,z+dz)
+			else:
+				ob.setPos(0,0,-20)
+
+	def getChoice(self):
+		return random.choice(["pop", "move", "move"])
+

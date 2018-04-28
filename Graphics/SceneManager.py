@@ -2,9 +2,10 @@ from panda3d.core import *
 from direct.task.Task import Task
 from direct.showbase import DirectObject
 import direct.directbase.DirectStart
+import random
 
 #got lighting from optional lecture
-def setupScene(render):
+def setupLighting(render):
 	#add one light per face, so each face is nicely illuminated
 	plight1 = PointLight('plight')
 	plight1.setColor(VBase4(1, 1, 1, 1))
@@ -50,9 +51,19 @@ def setupMenuBackground(render):
 	scene.setScale(1)
 	scenePos = (3.5, 4, -.3)
 	scene.setPos(scenePos)
-	# firstLoc = (-.9, 2, .5)
+
+	# text = TextNode("ChatWorld")
+	# text.setText("ChatWorld")
+	# textNode = render.attachNewNode(text)
+	# text.setAlign(TextNode.ACenter)
+	# textNode.setScale(.3)
+	# textNode.setPos(.6,5,.75)
+
+	#firstLoc = (-.9, 2, .5)
 	# secondLoc = (-.9, 2, -.3) 
-	# introAnimation(firstLoc)
+	# for i in range(10):
+	# 	z = random.random()
+	# 	introAnimation(-.3 + i * .05, 2, z)
 	# introAnimation(secondLoc)
 	return scene
 
@@ -62,15 +73,17 @@ def loadBackground(render):
 	scene.reparentTo(render)
 	scene.setScale(.25)
 	scene.setPos(60, 20, -2)
+	return scene
 
 def loadPrettyLayout(myName, friendName):
-		(x,y,z) = (-4, 15, -2)
-		space = 8
-		createDiamond(x, y, z, myName)
-		createDiamond(x+space, y, z, friendName)
+	toReturn = []
+	(x,y,z) = (-4, 15, -2)
+	space = 8
+	diamond1 = createDiamond(x, y, z, myName)
+	diamond2 = createDiamond(x+space, y, z, friendName)
 
-        # taskMgr.doMethodLater(1, rotateDiamond,
-        #  extraArgs = [diamond1], appendTask = True)
+	toReturn.extend([diamond1, diamond2])
+	return toReturn
 
 def createDiamond(x,y,z, myName):
 	# diamond = loader.loadModel("Graphics/models/icon.egg")
@@ -89,6 +102,7 @@ def createDiamond(x,y,z, myName):
 
 	# diamond.setPos(x,y,z)
 	# diamond.setHpr(90,0,0)
+	return textNode
 
 def rotateDiamond(obj, task):
 	(y,p,r) = obj.getHpr()
@@ -99,17 +113,21 @@ class introAnimation(object):
 	def __init__(self, x, y, z):
 		self.star = loader.loadModel("Graphics/models/star.egg")
 		self.star.reparentTo(render)
-		self.speedX = .01
+		self.speedX = .005
+		self.speedZ = .01
 		self.star.setScale(.05)
-		self.bound = x
+		self.boundX = .5
+		self.boundZ = 1
+		self.startX = x
+		self.startZ = z
 		self.star.setPos(x,y,z)
 		taskMgr.doMethodLater(.005, self.animate, "starAnimation")
 
 	def animate(self, task):
 		(x,y,z) = self.star.getPos()
-		self.star.setPos(x + self.speedX, y, z)
-		if(x> self.bound):
-			self.star.setPos(self.bound, y, z)
+		self.star.setPos(x + self.speedX, y, z + self.speedZ)
+		if(x> self.boundX and z > self.boundZ):
+			self.star.setPos(self.startX, y, self.startZ)
 		return task.again
 
 

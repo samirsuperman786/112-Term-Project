@@ -26,12 +26,15 @@ import threading
 from queue import Queue
 import copy
 
-nodePaths = []
-state = "login"
-myName = ""
-micIndex = None
-leftRegion = (-4, 35, 8)
-scene = None
+class Struct(object): pass
+data = Struct()
+data.activeScreen = render.attachNewNode("activescreen")
+# nodePaths = []
+# state = ""
+# myName = ""
+# micIndex = None
+# leftRegion = (-4, 35, 8)
+# scene = None
 
 HOST = "localhost"
 PORT = 50011
@@ -67,20 +70,13 @@ class Display(ShowBase):
         taskMgr.doMethodLater(updateTimer, self.update, "update")
         
     def loadModels(self):
-        #setupScene(render)# load lights and the fancy background
-        loadBackground(render)
-        loadClouds(render)
+        global data
+        loadClouds(data.activeScreen)
         #timerFired
         newWordTimer = .7
         moveCloudTimer = .02
         taskMgr.doMethodLater(newWordTimer, self.getNewWord, "word")
         taskMgr.doMethodLater(moveCloudTimer, moveClouds, "cloud")
-
-    def setKey(self, key, value):
-        self.keyMap[key] = value
-
-    def createKeyControls(self):
-        pass
 
     #Updates the display and gets new words
     def update(self, task):
@@ -90,31 +86,30 @@ class Display(ShowBase):
                 #print("received: ", msg, "\n")
                 msg = msg.split()
                 command = msg[0]
-                global state
+                global data
                 if(command== "myIDis"):
                     self.myPID = msg[1]
                     self.otherPlayers[self.myPID] =[]
                 elif(command == "myMicIs"):
-                    global micIndex
-                    micIndex = int(msg[1])
+                    data.micIndex = int(msg[1])
                     self.micIndex = int(msg[1])
                 elif(command == "newPlayer"):
                     newPID = msg[1]
                     self.otherPlayers[newPID] = list()
                 elif(command == "loginEvent" or command == "logoffEvent"):
-                    if(state=="menu"):
+                    if(data.state=="menu"):
                         updateMenu()
                 elif(command == "callEvent"):
-                    if(state=="menu"):
-                        state = "inCall"
+                    if(data.state=="menu"):
+                        data.state = "inCall"
                         player1 = msg[2]
                         player2 = msg[3]
-                        if(player1 == myName):
-                            dialFriend(myName, player2)
-                        elif(player2 == myName):
-                            dialFriend(myName, player1)
+                        if(player1 == data.myName):
+                            dialFriend(data.myName, player2)
+                        elif(player2 == data.myName):
+                            dialFriend(data.myName, player1)
                 elif(command == "newWord"):
-                    if(state=="inCall"):
+                    if(data.state=="inCall"):
                         PID = msg[1]
                         label = msg[2]
                         (x,y,z) = (8, 35, 10)
@@ -154,40 +149,87 @@ def createGravity():
     gravityFN.addForce(gravityForce)
     base.physicsMgr.addLinearForce(gravityForce)
 
-def start():
+def initializeVariables():
+    global data
+    data.state = ""
+    data.myName = ""
+    data.micIndex = None
+    data.leftRegion = (-4, 35, 8)
+
+def goBackToLogin():
+    global data
+    if(data.myName!=""):
+        userLogOff()
+    clearScreen()
     loginScreen()
-    setupScene(render)
-    global scene
-    scene = setupMenuBackground(render)
+
+def start():
+    global data
+    loginScreen()
+    setupLighting(render)
+    clickableOption(-.4, 1.1, -.2, "Menu", goBackToLogin)
     base.run()
- 
+
 def loginScreen():
+    global data
+    data.state = "login"
+    initializeVariables()
+    setupMenuBackground(data.activeScreen)
     text = TextNode("Username")
-    text.setText("Username")
+    text.setText("What's your name?")
     text.setTextColor(0, 0, 0, 1)
-    textNodePath = aspect2d.attachNewNode(text)
+    textNodePath = data.activeScreen.attachNewNode(text)
     textNodePath.setScale(.15)
-    textNodePath.setPos(0,0,.2)
-    entry = DirectEntry(text = "", scale=.2, command=menuScreen,
+    textNodePath.setPos(-.2,0,.1)
+    entry = DirectEntry(text = "", scale=.2, command=passwordScreen,
     initialText="", numLines = 2, focus=1,
      frameSize = (-1.0,0,0,0))
-    global nodePaths
-    nodePaths.append(textNodePath)
-    nodePaths.append(entry)
+    entry.setPos(-.2,0,-.1)
 
-def menuScreen(playerName):
-    global myName
-    myName= playerName
-    global state
-    state="menu"
-    msg = "loginEvent %s\n" % myName
+def passwordScreen(playerName, attempts = 0):
+    global data
+    clearScreen()
+    setupMenuBackground(data.activeScreen)
+    setupLighting(render)
+    wrongNodePath = None
+    if(attempts!=0):
+        wrongEntry= TextNode("wrong")
+        wrongEntry.setTextColor(256, 0, 0, 1)
+        wrongEntry.setText("X")
+        wrongNodePath = data.activeScreen.attachNewNode(wrongEntry)
+        wrongNodePath.setScale(.15)
+        wrongNodePath.setPos(-.3,0,-.2)
+    data.state = "password"
+    entry = DirectEntry(text = "", scale=.2, command=menuScreen,
+     extraArgs = [playerName], obscured=1, initialText="",
+      numLines = 2, focus=1, frameSize = (-1.0,0,0,0))
+    entry.setPos(-.2,0,-.2)
+    text = TextNode("password")
+    text.setTextColor(0, 0, 0, 1)
+    if(isTracked(playerName)==False):
+        toDisplay = "New player!\nEnter a new password: \n"
+    else:
+        toDisplay = "Welcome back!\nEnter your password: \n"
+    text.setText(toDisplay)
+    textNodePath = data.activeScreen.attachNewNode(text)
+    textNodePath.setScale(.15)
+    textNodePath.setPos(-.2,0,.2)
+
+def menuScreen(input, playerName):
+    global data
+    if(isTracked(playerName)==False): newPlayer(playerName, input)
+    if(doPasswordsMatch(input, getStoredPassword(playerName))==False):
+        passwordScreen(playerName, 1)
+        return
+    data.myName= playerName
+    data.state="menu"
+    msg = "loginEvent %s\n" % data.myName
     server.send(msg.encode())
-    if(isTracked(playerName)==False): newPlayer(playerName)
-    setOnlineStatus(playerName, True)
+    setOnlineStatus(data.myName, True)
     updateMenu()
 
 def updateMenu():
-    global nodePaths
+    global data
     clearScreen()
     text = TextNode("Online Players")
     text.setTextColor(0, 0, 0, 1)
@@ -197,39 +239,36 @@ def updateMenu():
     if(len(online)==1):
         toDisplay+= "No players online!"
     for player in online:
-        if(player == myName): continue
-        pGraphic = PlayerGraphic(-.2, 2, -.2, player, myName, server)
-        nodePaths.append(pGraphic.getBobble())
+        if(player == data.myName): continue
+        pGraphic = PlayerGraphic(-.2, 2, -.2, player, data.myName, server, data.activeScreen)
         space += 5
     text.setText(toDisplay)
-    textNodePath = aspect2d.attachNewNode(text)
+    textNodePath = data.activeScreen.attachNewNode(text)
     textNodePath.setScale(.15)
     textNodePath.setPos(-.2,0,.2)
-    nodePaths.append(textNodePath)
 
 def dialFriend(playerName, friend):
-    global micIndex
-    global scene
+    global data
     print("DIALING!")
     clearScreen()
-    if(scene!=None):
-        scene.removeNode()
-        scene=None
-    initializeListener(micIndex)
-    loadPrettyLayout(playerName, friend)
+    initializeListener(data.micIndex)
     #base.disableMouse()
     createGravity()
     game.loadModels()
 
 def clearScreen():
-    global nodePaths
-    for path in nodePaths:
-        path.removeNode()
-    nodePaths = []
+    global data
+    for path in data.activeScreen.getChildren():
+        path.detachNode()
+
+    # for path in aspect2d.getChildren():
+    #     if(path!=render):
+    #         path.detachNode()
 
 def userLogOff():
-    setOnlineStatus(myName, False)
-    msg = "logoffEvent %s\n" % myName
+    global data
+    setOnlineStatus(data.myName, False)
+    msg = "logoffEvent %s\n" % data.myName
     server.send(msg.encode())
 
 if __name__ == "__main__":
