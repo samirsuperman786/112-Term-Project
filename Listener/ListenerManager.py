@@ -9,16 +9,23 @@ import speech_recognition as sr
 import queue
 #from Listener.VolumeReader import *
 
+stop = None
 phrases = queue.Queue()
 phrases.put("Connected!")
 
 #starts the listener
 def initializeListener(micIndex):
+    global stop
     r = sr.Recognizer()
     m = sr.Microphone(device_index=micIndex)
     with sr.Microphone() as source:
         r.adjust_for_ambient_noise(source, duration = 0.5) 
-        r.listen_in_background(m, translate, 2)
+        stop = r.listen_in_background(m, translate, 2)
+
+def stopListener():
+    global stop
+    stop()
+    stop = None
 
 #translates audio to text
 def translate(recognizer, audio):

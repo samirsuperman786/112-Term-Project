@@ -7,7 +7,7 @@ import random
 
 #Word object which tracks and moves its location
 class Word(DirectObject.DirectObject):
-	def __init__(self, render, x, y, z, label, color):
+	def __init__(self, activeScreen, x, y, z, label, color):
 		self.x = x
 		self.y = y
 		self.z = z
@@ -27,7 +27,7 @@ class Word(DirectObject.DirectObject):
 		textNode.setPos(0,-2,0)
 		####
 		node = NodePath(label)
-		node.reparentTo(render)
+		node.reparentTo(activeScreen)
 		an = ActorNode(label)
 		anp = node.attachNewNode(an)
 		base.physicsMgr.attachPhysicalNode(an)

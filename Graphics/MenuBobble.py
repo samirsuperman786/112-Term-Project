@@ -34,7 +34,7 @@ class clickableOption(object):
 
 #calling selection
 class PlayerGraphic(object):
-	def __init__(self, x, y, z, label, myPlayerName, server, render):
+	def __init__(self, x, y, z, label, myPlayerName, server, activeScreen):
 		self.x = x
 		self.y = y
 		self.z = z
@@ -55,7 +55,7 @@ class PlayerGraphic(object):
 		textNode = self.sphere.attachNewNode(text)
 		textNode.setScale(1.2)
 		textNode.setPos(0,-2,.3)
-		self.sphere.reparentTo(render)
+		self.sphere.reparentTo(activeScreen)
 		
 	def move(self, dx, dy, dz):
 		(self.x, self.y, self.z) = (dx + self.x, dy + self.y, dz + self.z) 
