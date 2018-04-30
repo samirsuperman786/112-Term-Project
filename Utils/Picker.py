@@ -31,8 +31,9 @@ class Picker(DirectObject.DirectObject):
 
    #this function is meant to flag an object as being somthing we can pick 
    def makePickable(self, newObj, val = "True", tagName = "pickable"): 
+      newObj.setTag(tagName, val)
+      self.val = val
       self.tag = tagName
-      newObj.setTag(tagName, val) 
 
    #this function finds the closest object to the camera that has been hit by our ray 
    def getObjectHit(self, mpos): #mpos is the position of the mouse on the screen 
@@ -48,7 +49,7 @@ class Picker(DirectObject.DirectObject):
 
          while parent != self.activeScreen: 
             tag = parent.getTag(self.tag)
-            if tag!="":
+            if tag==self.val:
                self.pickedObj=parent
                self.mySound.play()
                return parent 

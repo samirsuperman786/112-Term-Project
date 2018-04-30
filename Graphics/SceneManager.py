@@ -74,29 +74,21 @@ def loadBackground(activeScreen):
 	scene.setPos(60, 20, -2)
 
 def loadPrettyLayout(myName, friendName, activeScreen):
-	(x,y,z) = (-4, 15, -2)
-	space = 8
-	diamond1 = createDiamond(x, y, z, myName, activeScreen)
-	diamond2 = createDiamond(x+space, y, z, friendName, activeScreen)
+	(x,y,z) = (-1,0,-.5)
+	space = 2
+	createText(x, y, z, myName, activeScreen)
+	createText(x+space, y, z, friendName, activeScreen)
 
-def createDiamond(x,y,z, myName, activeScreen):
+def createText(x,y,z, myName, activeScreen):
 	# diamond = loader.loadModel("Graphics/models/icon.egg")
 	# diamond.reparentTo(activeScreen)
 	text = TextNode(myName)
 	text.setText(myName)
 	text.setTextColor(0, 0, 0, 1)
-
-	# textNode = diamond.attachNewNode(text)
 	textNode = activeScreen.attachNewNode(text)
 	text.setAlign(TextNode.ACenter)
-	textNode.setScale(.7)
+	textNode.setScale(.1)
 	textNode.setPos(x,y,z)
-	#textNode.setHpr(-90,0,0)
-	#diamond.setScale(.5)
-
-	# diamond.setPos(x,y,z)
-	# diamond.setHpr(90,0,0)
-	return textNode
 
 def rotateDiamond(obj, task):
 	(y,p,r) = obj.getHpr()

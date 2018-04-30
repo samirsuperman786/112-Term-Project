@@ -12,6 +12,7 @@ import queue
 stop = None
 phrases = queue.Queue()
 
+
 #starts the listener
 def initializeListener(micIndex):
     global stop
@@ -26,8 +27,9 @@ def initializeListener(micIndex):
 def stopListener():
     global stop
     if(stop!=None):
-        stop()
+        stop(False)
         stop = None
+        phrases.queue.clear()
 
 #translates audio to text
 def translate(recognizer, audio):
