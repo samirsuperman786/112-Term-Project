@@ -7,11 +7,12 @@ import random
 
 #Word object which tracks and moves its location
 class Word(DirectObject.DirectObject):
-	def __init__(self, activeScreen, x, y, z, label, color):
+	def __init__(self, activeScreen, x, y, z, label, color, server):
 		self.x = x
 		self.y = y
 		self.z = z
 		self.label = label
+		self.server = server
 		path = "Graphics/models/" + color + "sphere.egg"
 		self.sphere = loader.loadModel(path)
 		self.sphere.setScale(1.1)
@@ -33,6 +34,12 @@ class Word(DirectObject.DirectObject):
 		base.physicsMgr.attachPhysicalNode(an)
 		self.sphere.reparentTo(anp)
 		an.getPhysicsObject().setMass(3)
+
+	def getText(self):
+		return self.label
+
+	def getObj(self):
+		return self.sphere
 		
 	def move(self):
 		(x, y, z) = self.sphere.getPos() 
@@ -46,12 +53,17 @@ class Word(DirectObject.DirectObject):
 		ob = self.myPicker.getObjectHit(base.mouseWatcherNode.getMouse()) 
 		if(ob!=None):
 			(choice1, choice2) = (self.getChoice(), self.getChoice())
+			newPos = None
 			if(choice1 == "move" or choice2 == "move"):
 				(x,y,z) = ob.getPos()
 				(dx,dy,dz) = (random.randint(0,5),random.randint(0,5),random.randint(0,5))
-				ob.setPos(x+dx,y+dy,z+dz)
+				newPos = x+dx,y+dy,z+dz
 			else:
-				ob.setPos(0,0,-20)
+				newPos = (0,0,-20)
+			(x, y, z) = newPos
+			ob.setPos(newPos)
+			msg = "popWord %s %d %d %d\n" % (self.label, x, y, z)
+			#self.server.send(msg.encode()) 
 
 	def getChoice(self):
 		return random.choice(["pop", "move", "move"])
