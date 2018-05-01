@@ -4,10 +4,15 @@ from direct.showbase import DirectObject
 import direct.directbase.DirectStart
 import random
 from Utils.StringHelper import *
+from panda3d.physics import *
+from direct.filter.CommonFilters import CommonFilters
 
 #got lighting from optional lecture
 def setupLighting(activeScreen):
 	#add one light per face, so each face is nicely illuminated
+	filters = CommonFilters(base.win, base.cam)
+	filters.setCartoonInk(.4)
+
 	plight1 = PointLight('plight')
 	plight1.setColor(VBase4(1, 1, 1, 1))
 	plight1NodePath = activeScreen.attachNewNode(plight1)
@@ -64,3 +69,12 @@ def loadPrettyLayout(myName, friendName, activeScreen):
 	space = 2
 	createTextAt(x, y, z, myName, activeScreen, "black", .1)
 	createTextAt(x+space, y, z, friendName, activeScreen, "black", .1)
+
+def createGravity():
+    #add gravity
+    base.enableParticles()
+    gravityFN=ForceNode('world-forces')
+    gravityFNP=render.attachNewNode(gravityFN)
+    gravityForce=LinearVectorForce(0,0,-3) #gravity acceleration
+    gravityFN.addForce(gravityForce)
+    base.physicsMgr.addLinearForce(gravityForce)

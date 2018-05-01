@@ -28,21 +28,30 @@ from queue import Queue
 import copy
 import time
 import datetime
+import random
 
+server = None
 
 class Struct(object): pass
 data = Struct()
-data.activeScreen3d = render.attachNewNode("activescreen")
-data.activeScreen2d = aspect2d.attachNewNode("activescreen")
-data.buttonScreen = render.attachNewNode("buttons")
 
-HOST = "localhost"
-PORT = 50011
+def runGame():
+    global data
+    initializeConstants()
+    initializeVariables()
+    loginScreen()
+    setupLighting(render)
+    startTasks()
+    base.run()
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-server.connect((HOST,PORT))
-print("Connected to server!")
+#connects to server
+def connectToServer():
+    global server
+    HOST = "localhost"
+    PORT = 50011
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.connect((HOST,PORT))
+    print("Connected to server!")
 
 #handles server messages
 def handleServerMsg(server, serverMsg):
@@ -58,21 +67,17 @@ def handleServerMsg(server, serverMsg):
       serverMsg.put(readyMsg)
       command = msg.split("\n")
 
-def createGravity():
-    #add gravity
-    base.enableParticles()
-    gravityFN=ForceNode('world-forces')
-    gravityFNP=render.attachNewNode(gravityFN)
-    gravityForce=LinearVectorForce(0,0,-3) #gravity acceleration
-    gravityFN.addForce(gravityForce)
-    base.physicsMgr.addLinearForce(gravityForce)
-
+#sets up default values
 def initializeVariables():
     global data
+    data.activeScreen3d = render.attachNewNode("activescreen")
+    data.activeScreen2d = aspect2d.attachNewNode("activescreen")
+    data.buttonScreen = render.attachNewNode("buttons")
     data.micIndex = None
     data.otherPlayers = dict()
     clearPersonalData()
 
+#clears all data thats important per player
 def clearPersonalData():
     global data
     data.state = ""
@@ -82,8 +87,10 @@ def clearPersonalData():
     data.words = []
     data.friendButton = None
     data.buttons = []
-    data.sound = None
+    data.ringtone = None
+    data.music = None
 
+#stores important locations
 def initializeConstants():
     global data
     data.centerScreenPos = (.35, 0, .1)
@@ -91,14 +98,23 @@ def initializeConstants():
     data.menuButtonLoc = data.logoutButtonLoc
     data.friendButtonLoc = (-.1, 1.1, -.25)
 
+#loads clouds and scene
 def loadModels():
     global data
     loadClouds(data.activeScreen3d)
     loadBackground(data.activeScreen3d)
 
+def loadMusic():
+    global data
+    data.music = base.loader.loadSfx("Graphics/sounds/relaxing.ogg")
+    data.music.play() 
+
+#starts all tasks to run in background
 def startTasks():
     newWordTimer = .7
     moveCloudTimer = .02
+    updateTimer = .2
+    taskMgr.doMethodLater(updateTimer, update, "update")
     taskMgr.doMethodLater(newWordTimer, getNewWord, "word")
     taskMgr.doMethodLater(moveCloudTimer, moveClouds, "cloud")
 
@@ -171,17 +187,15 @@ def update(task):
                             color = "blue"
                             textLine = data.myName + ": " + label
                         data.transcript.append(textLine)
-                        newWord = Word(data.activeScreen3d, x, y, z, label, color, server)
+                        newWord = Word(playerName, data.activeScreen3d, x, y, z, label, color, server)
                         data.otherPlayers[playerName].append(newWord)
-            elif(command == "popWord"):
+            elif(command == "moveWord"):
                 if(data.state=="inCall"):
                     label = msg[2]
-                    (dx, dy, dz) = (2, 2, 2)
-                    for player in data.otherPlayers:
-                        for word in data.otherPlayers[player]:
-                            if(word.getText()==label):
-                                (x, y, z) = word.getObj().getPos()
-                                word.getObj().setPos(x + dx, y + dy, z + dz)
+                    playerName = msg[3]
+                    for word in data.otherPlayers[playerName]:
+                        if(word.getText()==label):
+                            word.throwWord()
         except:
             print(msg)
             print("failed")
@@ -197,10 +211,13 @@ def getNewWord(task):
         label = phrases.get()
         msg = "newWord %s %s\n" % (label, data.myName)
         server.send(msg.encode())
+
     for player in data.otherPlayers:
+        newWordList = []
         for word in data.otherPlayers[player]:
-            if(word.move()==False):
-                data.otherPlayers[player].remove(word)
+            if(word.move()):
+                newWordList.append(word)
+        data.otherPlayers[player] = newWordList
     return task.again
 
 def createLogoutButton():
@@ -235,6 +252,7 @@ def createAddFriendButton():
     co = clickableOption(cx, cy, cz, text, toggleFriend, data.buttonScreen, color)
     data.friendButton = co
 
+#toggles whether to add/remove a friend
 def toggleFriend():
     global data
     if(data.friend in getFriends(data.myName)):
@@ -253,19 +271,14 @@ def goBackToMenu(tmp=None):
     global data
     data.state = "menu"
     updateMenu()
-
-def start():
-    global data
-    loginScreen()
-    setupLighting(render)
-    startTasks()
-    base.run()
+    loadMusic()
 
 def loginScreen():
     global data
     clearScreen()
     clearPersonalData()
     data.state = "login"
+    loadMusic()
     setupMenuBackground(data.activeScreen3d)
     (cx, cy, cz) = data.centerScreenPos
     createTextAt(cx, cy, cz, "What's your name?", data.activeScreen2d)
@@ -340,14 +353,16 @@ def acceptMenu(playerName, friend):
     data.friend = friend
     print("Incoming call!")
     clearScreen()
+    stopMusic()
     createTextAt(.4,1,.2, "Incoming call from\n" + friend, data.activeScreen2d)
     setupMenuBackground(data.activeScreen3d)
     co1 = clickableOption(.2, 1.1, -.2, "Decline", declineCall, data.buttonScreen, "red")
     co2 = clickableOption(-.1, 1.1, -.2, "Accept", acceptCall, data.buttonScreen, "green")
     data.buttons.append(co1)
     data.buttons.append(co2)
-    data.sound = base.loader.loadSfx("Graphics/sounds/ringtone.ogg")
-    data.sound.play()
+    #ringtone http://soundbible.com/1407-Phone-Ringing.html
+    data.ringtone = base.loader.loadSfx("Graphics/sounds/ringtone.ogg")
+    data.ringtone.play()
 
 def dialingMenu(playerName, friend):
     global data
@@ -355,6 +370,7 @@ def dialingMenu(playerName, friend):
     data.friend = friend
     print("Dialing!")
     clearScreen()
+    stopMusic()
     setupMenuBackground(data.activeScreen3d)
     co = clickableOption(.2, 1.1, -.2, "Hangup", declineCall, data.buttonScreen, "red") 
     data.buttons.append(co)
@@ -364,9 +380,9 @@ def dialFriend():
     global data
     data.state = "inCall"
     clearScreen()
+    stopRinging()
     initializeListener(data.micIndex)
     loadPrettyLayout(data.myName, data.friend, data.activeScreen2d)
-    #base.disableMouse()
     createGravity()
     co = clickableOption(-.25, 1.1, -.25, "Transcript", downloadTranscript, data.buttonScreen)
     data.buttons.append(co)
@@ -388,9 +404,15 @@ def declineCall():
 
 def stopRinging():
     global data
-    if(data.sound!=None):
-        data.sound.stop()
-        data.sound = None
+    if(data.ringtone!=None):
+        data.ringtone.stop()
+        data.ringtone = None
+
+def stopMusic():
+    global data
+    if(data.music!=None):
+        data.music.stop()
+        data.music = None
 
 def clearScreen():
     global data
@@ -426,16 +448,17 @@ def downloadTranscript():
         f.write(line + "\n")
     f.close()
 
-if __name__ == "__main__":
-    base.exitFunc = userLogOff
+def setupWindow():
     wp = WindowProperties() 
     wp.setSize(1920, 1080) 
     wp.setTitle("ChatWorld")
     base.win.requestProperties(wp) 
     base.disableMouse()
-    initializeConstants()
-    taskMgr.doMethodLater(.2, update, "update")
-    initializeVariables()
+
+if __name__ == "__main__":
+    connectToServer()
+    base.exitFunc = userLogOff
+    setupWindow()
     serverMsg = Queue(100)
     threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
-    start()
+    runGame()
