@@ -34,6 +34,7 @@ class Struct(object): pass
 data = Struct()
 data.activeScreen3d = render.attachNewNode("activescreen")
 data.activeScreen2d = aspect2d.attachNewNode("activescreen")
+data.buttonScreen = render.attachNewNode("buttons")
 # nodePaths = []
 # state = ""
 # myName = ""
@@ -74,14 +75,9 @@ def createGravity():
 
 def initializeVariables():
     global data
-    data.state = ""
-    data.myName = ""
     data.micIndex = None
-    data.friend = ""
-    data.transcript = []
-    data.words = []
     data.otherPlayers = dict()
-    #data.myPID = None
+    clearPersonalData()
 
 def clearPersonalData():
     global data
@@ -90,17 +86,22 @@ def clearPersonalData():
     data.friend = ""
     data.transcript = []
     data.words = []
+    data.friendButton = None
+    data.buttons = []
 
 def initializeConstants():
     global data
     data.centerScreenPos = (.35, 0, .1)
     data.logoutButtonLoc = (-.4, 1.1, -.25)
-    data.menuButtonLoc = (-.4, 1.1, -.25)
+    data.menuButtonLoc = data.logoutButtonLoc
+    data.friendButtonLoc = (-.1, 1.1, -.25)
 
 def loadModels():
     global data
     loadClouds(data.activeScreen3d)
     loadBackground(data.activeScreen3d)
+
+def startTasks():
     newWordTimer = .7
     moveCloudTimer = .02
     taskMgr.doMethodLater(newWordTimer, getNewWord, "word")
@@ -133,29 +134,24 @@ def update(task):
                     updateMenu()
             elif(command == "logoffEvent"):
                 playerName = msg[2]
-                if(playerName in data.otherPlayers):
-                    del data.otherPlayers[playerName]
-                if(data.state=="menu"):
-                    updateMenu()
-                elif(data.state== "inCall"):
-                    if(data.friend == playerName):
-                        Word(data.activeScreen3d, -8, 35, 10,
-                         "Disconnected", "red", server)
-                        data.friend = ""
-                        stopListener()
-                        data.state = "menu"
-                        taskMgr.doMethodLater(3, goBackToMenu, "back")
+                if(playerName!=data.myName):
+                    if(playerName in data.otherPlayers):
+                        del data.otherPlayers[playerName]
+                    if(data.state=="menu"):
+                        updateMenu()
+                    elif(data.state== "inCall"):
+                        if(data.friend == playerName):
+                            data.friend = ""
+                            stopListener()
+                            goBackToMenu()
             elif(command == "tryDial"):
                 if(data.state=="menu"):
                     player1 = msg[2]
                     player2 = msg[3]
                     if(player1 == data.myName):
-                        #acceptMenu(player1, player2)
                         dialingMenu(data.myName, player2)
-                        #dialFriend(data.myName, player2)
                     elif(player2 == data.myName):
-                        acceptMenu(player2, player1)
-                        #dialFriend(data.myName, player1)
+                        acceptMenu(data.myName, player1)
             elif(command == "acceptCall"):
                 player1 = msg[2]
                 player2 = msg[3]
@@ -165,30 +161,32 @@ def update(task):
                 player1 = msg[2]
                 player2 = msg[3]
                 if(data.myName==player1 or data.myName == player2):
-                    goBackToMenu()
                     data.friend = None 
+                    goBackToMenu()
             elif(command == "newWord"):
                 if(data.state=="inCall"):
                     label = msg[2]
                     playerName = msg[3]
-                    (x,y,z) = (8, 35, 10)
-                    color = "red"
-                    textLine = data.friend + ": " + label
-                    if(playerName ==data.myName):
-                        x = -8
-                        color = "blue"
-                        textLine = data.myName + ": " + label
-                    data.transcript.append(textLine)
-                    newWord = Word(data.activeScreen3d, x, y, z, label, color, server)
-                    data.otherPlayers[playerName].append(newWord)
+                    if(data.myName==playerName or data.friend ==playerName):
+                        (x,y,z) = (8, 35, 10)
+                        color = "red"
+                        textLine = data.friend + ": " + label
+                        if(playerName ==data.myName):
+                            x = -8
+                            color = "blue"
+                            textLine = data.myName + ": " + label
+                        data.transcript.append(textLine)
+                        newWord = Word(data.activeScreen3d, x, y, z, label, color, server)
+                        data.otherPlayers[playerName].append(newWord)
             elif(command == "popWord"):
                 if(data.state=="inCall"):
                     label = msg[2]
-                    (x, y, z) = (int(msg[3]), int(msg[4]), int(msg[5]))
+                    (dx, dy, dz) = (2, 2, 2)
                     for player in data.otherPlayers:
                         for word in data.otherPlayers[player]:
                             if(word.getText()==label):
-                                word.getObj().setPos(x,y,z)
+                                (x, y, z) = word.getObj().getPos()
+                                word.getObj().setPos(x + dx, y + dy, z + dz)
         except:
             print(msg)
             print("failed")
@@ -198,12 +196,12 @@ def update(task):
 #grabs words from listenermanager
 def getNewWord(task):
     global data
+    global phrases
     (startX, startY, startZ) = (-8, 35, 10)
     if(phrases.empty()==False):
         label = phrases.get()
         msg = "newWord %s %s\n" % (label, data.myName)
         server.send(msg.encode())
-
     for player in data.otherPlayers:
         for word in data.otherPlayers[player]:
             if(word.move()==False):
@@ -213,37 +211,64 @@ def getNewWord(task):
 def createLogoutButton():
     global data
     (cx, cy, cz) = data.logoutButtonLoc
-    clickableOption(cx, cy, cz, "Logout", goBackToLogin, data.activeScreen3d)
+    co = clickableOption(cx, cy, cz, "Logout", goBackToLogin, data.buttonScreen)
+    data.buttons.append(co)
 
 def createMenuButton():
     global data
     (cx, cy, cz) = data.menuButtonLoc
-    clickableOption(cx, cy, cz, "Menu", goBackToMenu, data.activeScreen3d)
+    co = clickableOption(cx, cy, cz, "Menu", goBackToMenu, data.buttonScreen)
+    data.buttons.append(co)
+
+def removeFriendButton():
+    global data
+    if(data.friendButton!=None):
+        data.friendButton.destroy()
+        data.friendButton.getObj().removeNode()
+
+def createAddFriendButton():
+    global data
+    removeFriendButton()
+    
+    if(data.friend in getFriends(data.myName)):
+        text = "Remove Friend"
+        color = "red"
+    else:
+        text = "Add Friend"
+        color = "green"
+    (cx, cy, cz) = data.friendButtonLoc
+    co = clickableOption(cx, cy, cz, text, toggleFriend, data.buttonScreen, color)
+    data.friendButton = co
+
+def toggleFriend():
+    global data
+    if(data.friend in getFriends(data.myName)):
+        removeFriend(data.myName, data.friend)
+    else:
+        addFriend(data.myName, data.friend)
+    createAddFriendButton()
 
 def goBackToLogin():
     global data
     if(data.myName!=""):
         userLogOff()
-    clearScreen()
     loginScreen()
 
 def goBackToMenu(tmp=None):
     global data
-    if(data.state=="inCall"):
-        declineCall()
     data.state = "menu"
-    # msg = "loginEvent %s\n" % data.myName
-    # server.send(msg.encode())
     updateMenu()
 
 def start():
     global data
     loginScreen()
     setupLighting(render)
+    startTasks()
     base.run()
 
 def loginScreen():
     global data
+    clearScreen()
     clearPersonalData()
     data.state = "login"
     setupMenuBackground(data.activeScreen3d)
@@ -290,36 +315,41 @@ def menuScreen(input, playerName):
     msg = "loginEvent %s\n" % data.myName
     server.send(msg.encode())
     setOnlineStatus(data.myName, True)
-    updateMenu()
 
 def updateMenu():
     global data
     clearScreen()
     setupMenuBackground(data.activeScreen3d)
-    toDisplay = "Click to Call: \n"
+    toDisplay = "Online Players:"
     online = getOnlinePlayers()
     space = 0
+    (cx, cy, cz) = data.centerScreenPos
     if(len(online)==1):
-        toDisplay+= "No players online!"
+        toDisplay+= "\nNo players online!"
     for player in online:
         if(player == data.myName): continue
-        PlayerGraphic(-.2 + space, 2, -.2, player, data.myName, server, data.activeScreen3d)
+        color = "blue"
+        if(player in getFriends(data.myName)):
+            color = "green"
+        co = PlayerGraphic(-.2 + space, 2, -.2, player, data.myName, server, data.activeScreen3d, color)
+        data.buttons.append(co)
         space += .2
     createTextAt(1.3, 0, -.9, data.myName, data.activeScreen2d)
-    createTextAt(.35, 0, .2, toDisplay, data.activeScreen2d)
+    createTextAt(cx, cy, cz, toDisplay, data.activeScreen2d)
     createLogoutButton()
 
 def acceptMenu(playerName, friend):
     global data
-    data.state = "inCall"
+    data.state = "calling"
     data.friend = friend
     print("Incoming call!")
     clearScreen()
     createTextAt(.4,1,.2, "Incoming call from\n" + friend, data.activeScreen2d)
     setupMenuBackground(data.activeScreen3d)
-    clickableOption(.2, 1.1, -.2, "Decline", declineCall, data.activeScreen3d, "red")
-    clickableOption(-.1, 1.1, -.2, "Accept", acceptCall, data.activeScreen3d, "green")
-    createMenuButton()
+    co1 = clickableOption(.2, 1.1, -.2, "Decline", declineCall, data.buttonScreen, "red")
+    co2 = clickableOption(-.1, 1.1, -.2, "Accept", acceptCall, data.buttonScreen, "green")
+    data.buttons.append(co1)
+    data.buttons.append(co2)
 
 def dialingMenu(playerName, friend):
     global data
@@ -328,9 +358,9 @@ def dialingMenu(playerName, friend):
     print("Dialing!")
     clearScreen()
     setupMenuBackground(data.activeScreen3d)
-    clickableOption(.2, 1.1, -.2, "Hangup", declineCall, data.activeScreen3d, "red") 
+    co = clickableOption(.2, 1.1, -.2, "Hangup", declineCall, data.buttonScreen, "red") 
+    data.buttons.append(co)
     createTextAt(.4, 1, .2, "Calling " + friend, data.activeScreen2d)
-    createMenuButton()
 
 def dialFriend():
     global data
@@ -340,9 +370,13 @@ def dialFriend():
     loadPrettyLayout(data.myName, data.friend, data.activeScreen2d)
     #base.disableMouse()
     createGravity()
-    clickableOption(-.25, 1.1, -.25, "Transcript", downloadTranscript, data.activeScreen3d)
+    co = clickableOption(-.25, 1.1, -.25, "Transcript", downloadTranscript, data.buttonScreen)
+    data.buttons.append(co)
     loadModels()
-    createMenuButton()
+    (x,y,z) = data.menuButtonLoc
+    co = clickableOption(x, y, z, "Hangup", declineCall, data.buttonScreen, "red") 
+    data.buttons.append(co)
+    createAddFriendButton()
 
 def acceptCall():
     global data
@@ -353,15 +387,25 @@ def declineCall():
     global data
     msg = "declineCall %s %s\n" % (data.myName, data.friend)
     server.send(msg.encode())
-    data.friend = None
 
 def clearScreen():
     global data
+
+    for button in data.buttons:
+        try:
+            button.destroy()
+        except:
+            pass
+    data.buttons = []
+
+    for path in data.buttonScreen.getChildren():
+        path.removeNode()
+
     for path in data.activeScreen3d.getChildren():
-        path.detachNode()
+        path.removeNode()
 
     for path in data.activeScreen2d.getChildren():
-        path.detachNode()
+        path.removeNode()
 
 def userLogOff():
     global data

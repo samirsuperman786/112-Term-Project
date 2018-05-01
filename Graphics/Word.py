@@ -16,8 +16,7 @@ class Word(DirectObject.DirectObject):
 		path = "Graphics/models/" + color + "sphere.egg"
 		self.sphere = loader.loadModel(path)
 		self.sphere.setScale(1.1)
-		self.myPicker = Picker(self.onHit, activeScreen)
-		self.myPicker.makePickable(self.sphere)
+		self.myPicker = Picker(self.onHit, activeScreen, self.sphere)
 		self.sphere.setPos(self.x, self.y, self.z)
 		text = TextNode(label)
 		text.setText(label)
@@ -44,26 +43,27 @@ class Word(DirectObject.DirectObject):
 	def move(self):
 		(x, y, z) = self.sphere.getPos() 
 		if(z<-5):
-			print(z)
-			self.sphere.detachNode()
+			self.sphere.removeNode()
 			return False
 		return True
 
 	def onHit(self):
-		ob = self.myPicker.getObjectHit(base.mouseWatcherNode.getMouse()) 
-		if(ob!=None):
-			(choice1, choice2) = (self.getChoice(), self.getChoice())
-			newPos = None
-			if(choice1 == "move" or choice2 == "move"):
-				(x,y,z) = ob.getPos()
-				(dx,dy,dz) = (random.randint(0,5),random.randint(0,5),random.randint(0,5))
-				newPos = x+dx,y+dy,z+dz
-			else:
-				newPos = (0,0,-20)
-			(x, y, z) = newPos
-			ob.setPos(newPos)
-			msg = "popWord %s %d %d %d\n" % (self.label, x, y, z)
-			#self.server.send(msg.encode()) 
+		if(base.mouseWatcherNode.hasMouse()):
+			ob = self.myPicker.getObjectHit(base.mouseWatcherNode.getMouse()) 
+			if(ob!=None):
+				(choice1, choice2) = (self.getChoice(), self.getChoice())
+				newPos = None
+				if(choice1 == "move" or choice2 == "move"):
+					(x,y,z) = ob.getPos()
+					(dx,dy,dz) = (random.randint(0,5),random.randint(0,5),random.randint(0,5))
+					newPos = x+dx,y+dy,z+dz
+				else:
+					newPos = (0,0,-20)
+				(x, y, z) = newPos
+				ob.setPos(newPos)
+				msg = "popWord %s\n" % (self.label)
+				#self.server.send(msg.encode())
+				self.myPicker.destroy() 
 
 	def getChoice(self):
 		return random.choice(["pop", "move", "move"])

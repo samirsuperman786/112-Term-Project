@@ -13,8 +13,7 @@ class clickableOption(object):
 		self.funcOnPress = funcOnPress
 		path = "Graphics/models/" + color + "sphere.egg"
 		self.sphere = loader.loadModel(path)
-		self.myPicker = Picker(self.onHit, activeScreen)
-		self.myPicker.makePickable(self.sphere, label, label)
+		self.myPicker = Picker(self.onHit, activeScreen, self.sphere, label, label)
 		self.sphere.setPos(self.x, self.y, self.z)
 		self.sphere.setScale(.02)
 		createTextAt(0, -2, .3, label, self.sphere, "black", 1.2)
@@ -27,29 +26,33 @@ class clickableOption(object):
 		# textNode.setPos(0,-2,.3)
 		self.sphere.reparentTo(activeScreen)
 
+	def getObj(self):
+		return self.sphere
+
 	def onHit(self):
 		if(base.mouseWatcherNode.hasMouse()):
 			ob = self.myPicker.getObjectHit(base.mouseWatcherNode.getMouse()) 
 			if(ob!=None):
 				self.funcOnPress()
 
+	def destroy(self):
+		self.myPicker.destroy()
+
 
 #calling selection
 class PlayerGraphic(object):
-	def __init__(self, x, y, z, label, myPlayerName, server, activeScreen):
+	def __init__(self, x, y, z, label, myPlayerName, server, activeScreen, color):
 		self.x = x
 		self.y = y
 		self.z = z
 		self.label = label
 		self.server = server 
 		self.myPlayerName = myPlayerName
-		self.called = False
-		path = "Graphics/models/greensphere.egg"
+		path = "Graphics/models/" + color + "sphere.egg"
 		self.sphere = loader.loadModel(path)
-		self.myPicker = Picker(self.onHit, activeScreen)
-		self.myPicker.makePickable(self.sphere, label)
+		self.myPicker = Picker(self.onHit, activeScreen, self.sphere, label)
 		self.sphere.setPos(self.x, self.y, self.z)
-		self.sphere.setScale(.07)
+		self.sphere.setScale(.04)
 		text = TextNode(label)
 		text.setText(label)
 		text.setAlign(TextNode.ACenter)
@@ -69,8 +72,11 @@ class PlayerGraphic(object):
 	def onHit(self):
 		if(base.mouseWatcherNode.hasMouse()):
 			ob = self.myPicker.getObjectHit(base.mouseWatcherNode.getMouse()) 
-			if(ob!=None and self.called == False):
-				self.called = True
+			if(ob!=None):
 				selection = ob.getTag("pickable")
+				print("lol")
 				msg = "tryDial %s %s\n"% (self.myPlayerName, selection)
 				self.server.send(msg.encode())
+
+	def destroy(self):
+		self.myPicker.destroy()
