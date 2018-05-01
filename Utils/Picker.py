@@ -59,7 +59,7 @@ class Picker(DirectObject.DirectObject):
       self.ignoreAll()
       self.pickerNP.remove_node()
       self.myTraverser.clearColliders()
+      self.newObj.removeNode()
       if(self.pickedObj!=None):
-         self.pickedObj.removeNode()
-      
+         self.pickedObj.removeNode()  
       

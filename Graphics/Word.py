@@ -8,19 +8,25 @@ from Utils.StringHelper import *
 
 #Word object which tracks and moves its location
 class Word(DirectObject.DirectObject):
-	def __init__(self, activeScreen, x, y, z, label, color, server):
+	def __init__(self, myName, activeScreen, x, y, z, label, color, server,):
 		self.x = x
 		self.y = y
 		self.z = z
 		self.label = label
 		self.server = server
+		self.activeScreen = activeScreen
+		self.myName = myName
 		path = "Graphics/models/" + color + "sphere.egg"
+		#sound from http://soundbible.com/670-Swooshing.html
+		self.mySound = base.loader.loadSfx("Graphics/sounds/swoosh.ogg")
 		self.sphere = loader.loadModel(path)
-		self.sphere.setScale(1.1)
+		self.sphere.setScale(1.2)
 		self.myPicker = Picker(self.onHit, activeScreen, self.sphere)
 		self.sphere.setPos(self.x, self.y, self.z)
 
-		createTextAt(0, -2, 0, label, self.sphere, "black", 1.3)
+		self.dy =0
+		self.stop = False
+		createTextAt(0, -2, 0, label, self.sphere, "black", .8)
 		####
 		node = NodePath(label)
 		node.reparentTo(activeScreen)
@@ -37,30 +43,31 @@ class Word(DirectObject.DirectObject):
 		return self.sphere
 		
 	def move(self):
-		(x, y, z) = self.sphere.getPos() 
-		if(z<-5):
-			self.sphere.removeNode()
+		(x, y, z) = self.sphere.getPos(self.activeScreen)
+		if(z<-10):
+			self.myPicker.destroy()
+			self.stop = True
 			return False
 		return True
+
+	def throwWord(self):
+		#self.mySound.play()
+		taskMgr.doMethodLater(.02, self.spiralWord, "word")
+
+	def spiralWord(self, task):
+		if(self.stop==False):
+			(x, y, z) = self.sphere.getPos()
+			d = .1
+			self.dy += d
+			self.sphere.setPos(x, y + self.dy, z)
+			if(self.dy>10):
+				self.dy = 0
+				return None
+			return task.again
 
 	def onHit(self):
 		if(base.mouseWatcherNode.hasMouse()):
 			ob = self.myPicker.getObjectHit(base.mouseWatcherNode.getMouse()) 
 			if(ob!=None):
-				(choice1, choice2) = (self.getChoice(), self.getChoice())
-				newPos = None
-				if(choice1 == "move" or choice2 == "move"):
-					(x,y,z) = ob.getPos()
-					(dx,dy,dz) = (random.randint(0,5),random.randint(0,5),random.randint(0,5))
-					newPos = x+dx,y+dy,z+dz
-				else:
-					newPos = (0,0,-20)
-				(x, y, z) = newPos
-				ob.setPos(newPos)
-				msg = "popWord %s\n" % (self.label)
-				#self.server.send(msg.encode())
-				self.myPicker.destroy() 
-
-	def getChoice(self):
-		return random.choice(["pop", "move", "move"])
-
+				msg = "moveWord %s %s\n" % (self.label, self.myName)
+				self.server.send(msg.encode()) 
