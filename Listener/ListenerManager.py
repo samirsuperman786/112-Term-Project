@@ -17,7 +17,7 @@ phrases = queue.Queue()
 def initializeListener(micIndex):
     global stop
     global phrases
-    phrases.put("Connected!")
+    #phrases.put("Connected!")
     r = sr.Recognizer()
     m = sr.Microphone(device_index=micIndex)
     with sr.Microphone() as source:
@@ -26,13 +26,14 @@ def initializeListener(micIndex):
 
 def stopListener():
     global stop
+    global phrases
     if(stop!=None):
         stop(False)
-        stop = None
         phrases.queue.clear()
 
 #translates audio to text
 def translate(recognizer, audio):
+    global phrases
     try:
         sentence = recognizer.recognize_google(audio)
         #adds to our word queue

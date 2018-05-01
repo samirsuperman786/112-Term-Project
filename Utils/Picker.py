@@ -5,7 +5,7 @@ from panda3d.core import *
 from Graphics.Word import *
 
 class Picker(DirectObject.DirectObject): 
-   def __init__(self, funcToCall, activeScreen): 
+   def __init__(self, funcToCall, activeScreen, newObj, val = "True", tagName = "pickable"): 
       #setup collision stuff 
       self.mySound = base.loader.loadSfx("Graphics/sounds/pop.ogg")
       self.activeScreen = activeScreen
@@ -25,15 +25,12 @@ class Picker(DirectObject.DirectObject):
 
       #this holds the object that has been picked 
       self.pickedObj=None 
-      self.tag = ""
 
-      self.accept('mouse1', funcToCall) 
-
-   #this function is meant to flag an object as being somthing we can pick 
-   def makePickable(self, newObj, val = "True", tagName = "pickable"): 
-      newObj.setTag(tagName, val)
+      self.newObj = newObj
+      self.newObj.setTag(tagName, val)
       self.val = val
       self.tag = tagName
+      self.accept('mouse1', funcToCall) 
 
    #this function finds the closest object to the camera that has been hit by our ray 
    def getObjectHit(self, mpos): #mpos is the position of the mouse on the screen 
@@ -58,4 +55,13 @@ class Picker(DirectObject.DirectObject):
       return None 
 
    def getPickedObj(self): 
-         return self.pickedObj 
+      return self.pickedObj 
+
+   def destroy(self):
+      self.ignoreAll()
+      self.pickerNP.remove_node()
+      self.myTraverser.clearColliders()
+      if(self.pickedObj!=None):
+         self.pickedObj.removeNode()
+      
+      

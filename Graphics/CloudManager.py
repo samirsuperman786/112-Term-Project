@@ -6,6 +6,10 @@ rainDrops = []
 
 #loads clouds and places them with spacing
 def loadClouds(activeScreen):
+	global clouds
+	global rainDrops
+	clouds = []
+	rainDrops = []
 	(x, y, z) = (-10, 20, 5)
 	numClouds = 4
 	spacing = 35/numClouds
