@@ -3,6 +3,7 @@ from direct.task.Task import Task
 from direct.showbase import DirectObject
 import direct.directbase.DirectStart
 import random
+from Utils.StringHelper import *
 
 #got lighting from optional lecture
 def setupLighting(activeScreen):
@@ -43,7 +44,6 @@ def setupLighting(activeScreen):
 	plight6NodePath.setPos(-500,0, 0)
 	activeScreen.setLight(plight6NodePath)
 
-
 #got landscape from https://free3d.com/3d-model/desert-26147.html
 def setupMenuBackground(activeScreen):
 	scene = loader.loadModel("Graphics/models/landscape.egg")
@@ -51,20 +51,6 @@ def setupMenuBackground(activeScreen):
 	scene.setScale(1)
 	scenePos = (3.5, 4, -.3)
 	scene.setPos(scenePos)
-
-	# text = TextNode("ChatWorld")
-	# text.setText("ChatWorld")
-	# textNode = activeScreen.attachNewNode(text)
-	# text.setAlign(TextNode.ACenter)
-	# textNode.setScale(.3)
-	# textNode.setPos(.6,5,.75)
-
-	#firstLoc = (-.9, 2, .5)
-	# secondLoc = (-.9, 2, -.3) 
-	# for i in range(10):
-	# 	z = random.random()
-	# 	introAnimation(-.3 + i * .05, 2, z)
-	# introAnimation(secondLoc)
 
 #default background from panda3d
 def loadBackground(activeScreen):
@@ -76,47 +62,5 @@ def loadBackground(activeScreen):
 def loadPrettyLayout(myName, friendName, activeScreen):
 	(x,y,z) = (-1,0,-.5)
 	space = 2
-	createText(x, y, z, myName, activeScreen)
-	createText(x+space, y, z, friendName, activeScreen)
-
-def createText(x,y,z, myName, activeScreen):
-	# diamond = loader.loadModel("Graphics/models/icon.egg")
-	# diamond.reparentTo(activeScreen)
-	text = TextNode(myName)
-	text.setText(myName)
-	text.setTextColor(0, 0, 0, 1)
-	textNode = activeScreen.attachNewNode(text)
-	text.setAlign(TextNode.ACenter)
-	textNode.setScale(.1)
-	textNode.setPos(x,y,z)
-
-def rotateDiamond(obj, task):
-	(y,p,r) = obj.getHpr()
-	obj.setHpr(y,p,r+4)
-	return task.again
-
-class introAnimation(object):
-	def __init__(self, x, y, z, activeScreen):
-		self.star = loader.loadModel("Graphics/models/star.egg")
-		self.star.reparentTo(activeScreen)
-		self.speedX = .005
-		self.speedZ = .01
-		self.star.setScale(.05)
-		self.boundX = .5
-		self.boundZ = 1
-		self.startX = x
-		self.startZ = z
-		self.star.setPos(x,y,z)
-		taskMgr.doMethodLater(.005, self.animate, "starAnimation")
-
-	def animate(self, task):
-		(x,y,z) = self.star.getPos()
-		self.star.setPos(x + self.speedX, y, z + self.speedZ)
-		if(x> self.boundX and z > self.boundZ):
-			self.star.setPos(self.startX, y, self.startZ)
-		return task.again
-
-
-
-
-
+	createTextAt(x, y, z, myName, activeScreen, "black", .1)
+	createTextAt(x+space, y, z, friendName, activeScreen, "black", .1)

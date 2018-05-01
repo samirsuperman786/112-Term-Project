@@ -7,7 +7,6 @@ from Graphics.Word import *
 class Picker(DirectObject.DirectObject): 
    def __init__(self, funcToCall, activeScreen, newObj, val = "True", tagName = "pickable"): 
       #setup collision stuff 
-      self.mySound = base.loader.loadSfx("Graphics/sounds/pop.ogg")
       self.activeScreen = activeScreen
       self.myTraverser = CollisionTraverser()
       self.queue= CollisionHandlerQueue() 
@@ -48,7 +47,6 @@ class Picker(DirectObject.DirectObject):
             tag = parent.getTag(self.tag)
             if tag==self.val:
                self.pickedObj=parent
-               self.mySound.play()
                return parent 
             else: 
                parent=parent.getParent() 

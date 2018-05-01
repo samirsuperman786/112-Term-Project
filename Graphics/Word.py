@@ -4,6 +4,7 @@ from Utils.Picker import *
 import direct.directbase.DirectStart
 from panda3d.physics import *
 import random
+from Utils.StringHelper import *
 
 #Word object which tracks and moves its location
 class Word(DirectObject.DirectObject):
@@ -18,13 +19,8 @@ class Word(DirectObject.DirectObject):
 		self.sphere.setScale(1.1)
 		self.myPicker = Picker(self.onHit, activeScreen, self.sphere)
 		self.sphere.setPos(self.x, self.y, self.z)
-		text = TextNode(label)
-		text.setText(label)
-		text.setTextColor(0, 0, 0, 1)
-		text.setAlign(TextNode.ACenter)
-		textNode = self.sphere.attachNewNode(text)
-		textNode.setScale(1.3)
-		textNode.setPos(0,-2,0)
+
+		createTextAt(0, -2, 0, label, self.sphere, "black", 1.3)
 		####
 		node = NodePath(label)
 		node.reparentTo(activeScreen)

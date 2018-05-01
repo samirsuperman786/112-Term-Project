@@ -35,12 +35,6 @@ data = Struct()
 data.activeScreen3d = render.attachNewNode("activescreen")
 data.activeScreen2d = aspect2d.attachNewNode("activescreen")
 data.buttonScreen = render.attachNewNode("buttons")
-# nodePaths = []
-# state = ""
-# myName = ""
-# micIndex = None
-# leftRegion = (-4, 35, 8)
-# scene = None
 
 HOST = "localhost"
 PORT = 50011
@@ -88,6 +82,7 @@ def clearPersonalData():
     data.words = []
     data.friendButton = None
     data.buttons = []
+    data.sound = None
 
 def initializeConstants():
     global data
@@ -231,10 +226,10 @@ def createAddFriendButton():
     removeFriendButton()
     
     if(data.friend in getFriends(data.myName)):
-        text = "Remove Friend"
+        text = "UnFriend"
         color = "red"
     else:
-        text = "Add Friend"
+        text = "Friend"
         color = "green"
     (cx, cy, cz) = data.friendButtonLoc
     co = clickableOption(cx, cy, cz, text, toggleFriend, data.buttonScreen, color)
@@ -319,6 +314,7 @@ def menuScreen(input, playerName):
 def updateMenu():
     global data
     clearScreen()
+    stopRinging()
     setupMenuBackground(data.activeScreen3d)
     toDisplay = "Online Players:"
     online = getOnlinePlayers()
@@ -350,6 +346,8 @@ def acceptMenu(playerName, friend):
     co2 = clickableOption(-.1, 1.1, -.2, "Accept", acceptCall, data.buttonScreen, "green")
     data.buttons.append(co1)
     data.buttons.append(co2)
+    data.sound = base.loader.loadSfx("Graphics/sounds/ringtone.ogg")
+    data.sound.play()
 
 def dialingMenu(playerName, friend):
     global data
@@ -388,14 +386,18 @@ def declineCall():
     msg = "declineCall %s %s\n" % (data.myName, data.friend)
     server.send(msg.encode())
 
+def stopRinging():
+    global data
+    if(data.sound!=None):
+        data.sound.stop()
+        data.sound = None
+
 def clearScreen():
     global data
 
     for button in data.buttons:
-        try:
-            button.destroy()
-        except:
-            pass
+        button.destroy()
+
     data.buttons = []
 
     for path in data.buttonScreen.getChildren():

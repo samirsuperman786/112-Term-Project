@@ -17,7 +17,7 @@ phrases = queue.Queue()
 def initializeListener(micIndex):
     global stop
     global phrases
-    #phrases.put("Connected!")
+    phrases.put("Connected!")
     r = sr.Recognizer()
     m = sr.Microphone(device_index=micIndex)
     with sr.Microphone() as source:
