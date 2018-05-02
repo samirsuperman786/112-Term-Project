@@ -56,6 +56,21 @@ def setupMenuBackground(activeScreen):
 	scene.setScale(1)
 	scenePos = (3.5, 4, -.3)
 	scene.setPos(scenePos)
+	Fish(activeScreen)
+
+class Fish(object):
+	def __init__(self, activeScreen):
+		fish = loader.loadModel("Graphics/models/fish.egg")
+		fish.reparentTo(activeScreen)
+		fish.setPos(0, 6, -.3)
+		self.rate = -2
+		self.increasing = True
+		taskMgr.doMethodLater(.02, self.move, "word", extraArgs = [fish], appendTask = True)
+
+	def move(self, fish, task):
+		(p, y, r) = fish.getHpr()
+		fish.setHpr(p + self.rate, y, r)
+		return task.again
 
 #default background from panda3d
 def loadBackground(activeScreen):
