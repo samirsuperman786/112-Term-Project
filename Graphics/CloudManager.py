@@ -22,8 +22,8 @@ def loadClouds(activeScreen):
 
 def loadRain(activeScreen):
 	(x, y, z) = (-5, 10, 5)
-	numRainDrops = 5
-	spacing = 2
+	numRainDrops = 10
+	spacing = 1
 
 	for i in range(numRainDrops):
 		z = random.randint(0, 10)

@@ -111,7 +111,7 @@ def loadMusic():
 
 #starts all tasks to run in background
 def startTasks():
-    newWordTimer = .7
+    newWordTimer = .8
     moveCloudTimer = .02
     updateTimer = .2
     taskMgr.doMethodLater(updateTimer, update, "update")
@@ -206,7 +206,6 @@ def update(task):
 def getNewWord(task):
     global data
     global phrases
-    (startX, startY, startZ) = (-8, 35, 10)
     if(phrases.empty()==False):
         label = phrases.get()
         msg = "newWord %s %s\n" % (label, data.myName)
@@ -273,6 +272,9 @@ def goBackToMenu(tmp=None):
     updateMenu()
     loadMusic()
 
+def loadPlayerName(activeScreen, name):
+    createTextAt(1.3, 0, -.9, name, activeScreen)
+
 def loginScreen():
     global data
     clearScreen()
@@ -308,6 +310,7 @@ def passwordScreen(playerName, attempts = 0):
     else:
         toDisplay = "Welcome back!\nEnter your password: \n"
 
+    loadPlayerName(data.activeScreen2d, playerName)
     createTextAt(cx, cy, cz + .1, toDisplay, data.activeScreen2d)
     createLogoutButton()
 
@@ -343,7 +346,7 @@ def updateMenu():
         co = PlayerGraphic(-.2 + space, 2, -.2, player, data.myName, server, data.activeScreen3d, color)
         data.buttons.append(co)
         space += .2
-    createTextAt(1.3, 0, -.9, data.myName, data.activeScreen2d)
+    loadPlayerName(data.activeScreen2d, data.myName)
     createTextAt(cx, cy, cz, toDisplay, data.activeScreen2d)
     createLogoutButton()
 
@@ -356,6 +359,7 @@ def acceptMenu(playerName, friend):
     stopMusic()
     createTextAt(.4,1,.2, "Incoming call from\n" + friend, data.activeScreen2d)
     setupMenuBackground(data.activeScreen3d)
+    loadPlayerName(data.activeScreen2d, playerName)
     co1 = clickableOption(.2, 1.1, -.2, "Decline", declineCall, data.buttonScreen, "red")
     co2 = clickableOption(-.1, 1.1, -.2, "Accept", acceptCall, data.buttonScreen, "green")
     data.buttons.append(co1)
@@ -372,6 +376,7 @@ def dialingMenu(playerName, friend):
     clearScreen()
     stopMusic()
     setupMenuBackground(data.activeScreen3d)
+    loadPlayerName(data.activeScreen2d, playerName)
     co = clickableOption(.2, 1.1, -.2, "Hangup", declineCall, data.buttonScreen, "red") 
     data.buttons.append(co)
     createTextAt(.4, 1, .2, "Calling " + friend, data.activeScreen2d)
@@ -384,13 +389,14 @@ def dialFriend():
     initializeListener(data.micIndex)
     loadPrettyLayout(data.myName, data.friend, data.activeScreen2d)
     createGravity()
-    co = clickableOption(-.25, 1.1, -.25, "Transcript", downloadTranscript, data.buttonScreen)
+    co = clickableOption(-.25, 1.1, -.25, "Transcript", downloadTranscript, data.buttonScreen, "blue")
     data.buttons.append(co)
     loadModels()
     (x,y,z) = data.menuButtonLoc
     co = clickableOption(x, y, z, "Hangup", declineCall, data.buttonScreen, "red") 
     data.buttons.append(co)
     createAddFriendButton()
+    loadPlayerName(data.activeScreen2d, data.myName)
 
 def acceptCall():
     global data
@@ -415,6 +421,9 @@ def stopMusic():
         data.music = None
 
 def clearScreen():
+    ping = base.loader.loadSfx("Graphics/sounds/ping.ogg")
+    ping.setVolume(.3)
+    ping.play() 
     global data
 
     for button in data.buttons:
@@ -461,4 +470,4 @@ if __name__ == "__main__":
     setupWindow()
     serverMsg = Queue(100)
     threading.Thread(target = handleServerMsg, args = (server, serverMsg)).start()
-    runGame()
+    runGame()                        

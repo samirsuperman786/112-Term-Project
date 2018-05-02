@@ -14,6 +14,7 @@ class Option(object):
 		self.sphere.setPos(self.x, self.y, self.z)
 		self.sphere.reparentTo(activeScreen)
 		self.mySound = base.loader.loadSfx("Graphics/sounds/pop.ogg")
+		self.mySound.setVolume(.4)
 		createTextAt(0, -2, .3, label, self.sphere, "black", 1)
 
 	def getObj(self):
