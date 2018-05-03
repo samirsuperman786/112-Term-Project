@@ -38,7 +38,7 @@ def translate(recognizer, audio):
         sentence = recognizer.recognize_google(audio)
         #adds to our word queue
         for w in sentence.split(" "):
-            print(w)
+            #print(w)
             phrases.put(w)
     except sr.UnknownValueError:
         print("...")
