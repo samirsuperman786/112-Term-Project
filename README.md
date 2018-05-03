@@ -12,4 +12,4 @@ The run function starts two clients on one computer.
 The code assumes that there are 2 microphones connected. 
 If only one microphone is connected, the application terminates.
 
-That's it, enjoy!
+That's it, enjoy! 
