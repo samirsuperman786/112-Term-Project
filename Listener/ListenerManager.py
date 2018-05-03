@@ -7,7 +7,6 @@ import time
 
 import speech_recognition as sr
 import queue
-#from Listener.VolumeReader import *
 
 stop = None
 phrases = queue.Queue()
@@ -38,7 +37,6 @@ def translate(recognizer, audio):
         sentence = recognizer.recognize_google(audio)
         #adds to our word queue
         for w in sentence.split(" "):
-            #print(w)
             phrases.put(w)
     except sr.UnknownValueError:
         print("...")

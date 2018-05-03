@@ -22,7 +22,6 @@ class Picker(DirectObject.DirectObject):
 
       self.myTraverser.addCollider(self.pickerNP, self.queue)
 
-      #this holds the object that has been picked 
       self.pickedObj=None 
 
       self.newObj = newObj

@@ -104,6 +104,7 @@ def loadModels():
     loadClouds(data.activeScreen3d)
     loadBackground(data.activeScreen3d)
 
+#music from https://www.youtube.com/watch?v=1ZYbU82GVz4&t=622s
 def loadMusic():
     global data
     data.music = base.loader.loadSfx("Graphics/sounds/relaxing.ogg")
@@ -123,19 +124,14 @@ def update(task):
     while (serverMsg.qsize() > 0):
         msg = serverMsg.get(False)
         try:
-            #print("received: ", msg, "\n")
             msg = msg.split()
             command = msg[0]
             global data
             if(command== "myIDis"):
                 pass
-                #data.myPID = msg[1]
-                #data.otherPlayers[data.myPID] =[]
             elif(command == "myMicIs"):
                 data.micIndex = int(msg[1])
             elif(command == "newPlayer"):
-                #newPID = msg[1]
-                #data.otherPlayers[newPID] = list()
                 pass
             elif(command == "loginEvent"):
                 playerName = msg[2]
@@ -420,6 +416,7 @@ def stopMusic():
         data.music.stop()
         data.music = None
 
+#ping sound from http://soundbible.com/2018-Plop.html
 def clearScreen():
     ping = base.loader.loadSfx("Graphics/sounds/ping.ogg")
     ping.setVolume(.3)

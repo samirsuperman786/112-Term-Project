@@ -82,7 +82,6 @@ class Word(DirectObject.DirectObject):
 		return True
 
 	def throwWord(self):
-		#self.mySound.play()
 		taskMgr.doMethodLater(.02, self.spiralWord, "word")
 
 	def spiralWord(self, task):
