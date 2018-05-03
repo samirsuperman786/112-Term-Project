@@ -58,7 +58,6 @@ def getStoredPassword(name):
 	except:
 		return None
 
-
 #inspiration from https://stackoverflow.com/questions/2624192/good-hash-function-for-strings
 def passwordHasher(input):
 	hash = 19 
@@ -70,4 +69,3 @@ def passwordHasher(input):
 def doPasswordsMatch(input, stored):
 	return passwordHasher(input)==stored
 
-#clearProfiles()
